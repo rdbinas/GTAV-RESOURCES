@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "M:\\SandBox-Shared\\repo\\RageCoop\\GTAV-RESOURCES\\Management\\RageCoop.Resources.Management\\RageCoop.Resources.Management\\RageCoop.Resources.Management.csproj",
+      "projectUniqueName": "M:\\SandBox-Shared\\repo\\RageCoop\\GTAV-RESOURCES\\RageCoop.Resources.Management\\RageCoop.Resources.Management\\RageCoop.Resources.Management.csproj",
       "projectName": "RageCoop.Resources.Management",
-      "projectPath": "M:\\SandBox-Shared\\repo\\RageCoop\\GTAV-RESOURCES\\Management\\RageCoop.Resources.Management\\RageCoop.Resources.Management\\RageCoop.Resources.Management.csproj",
+      "projectPath": "M:\\SandBox-Shared\\repo\\RageCoop\\GTAV-RESOURCES\\RageCoop.Resources.Management\\RageCoop.Resources.Management\\RageCoop.Resources.Management.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "M:\\SandBox-Shared\\repo\\RageCoop\\GTAV-RESOURCES\\Management\\RageCoop.Resources.Management\\RageCoop.Resources.Management\\obj\\",
+      "outputPath": "M:\\SandBox-Shared\\repo\\RageCoop\\GTAV-RESOURCES\\RageCoop.Resources.Management\\RageCoop.Resources.Management\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config",

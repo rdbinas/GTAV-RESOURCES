@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <Reference Include="RageCoop.Server">
-      <HintPath>..\..\..\..\..\RageCoop-V\Server\bin\Release\net6.0\RageCoop.Server.dll</HintPath>
+      <HintPath>..\..\..\RageCoop-V\Server\bin\Release\net6.0\RageCoop.Server.dll</HintPath>
     </Reference>
   </ItemGroup>
 
