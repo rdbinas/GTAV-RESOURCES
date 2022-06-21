@@ -1,9 +1,12 @@
 {
   "ExpandedNodes": [
     "",
+    "\\RageCoop.Resources.LSPDFR",
+    "\\RageCoop.Resources.LSPDFR\\RageCoop.Resources.LSPDFR",
+    "\\RageCoop.Resources.LSPDFR\\RageCoop.Resources.LSPDFR\\RageCoop.Resources.LSPDFR",
     "\\RageCoop.Resources.Management",
     "\\RageCoop.Resources.Management\\RageCoop.Resources.Management"
   ],
-  "SelectedNode": "\\RageCoop.Resources.Management\\RageCoop.Resources.Management.sln",
+  "SelectedNode": "\\RageCoop.Resources.LSPDFR\\RageCoop.Resources.LSPDFR\\RageCoop.Resources.LSPDFR\\Client.cs",
   "PreviewInSolutionExplorer": false
 }

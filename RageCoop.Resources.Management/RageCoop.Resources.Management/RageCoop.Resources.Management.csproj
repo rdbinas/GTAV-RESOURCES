@@ -3,12 +3,20 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	  <OutDir>M:\SandBox-Shared\repo\RageCoop\RageCoop-V\RageCoop.Server\bin\Debug\net6.0\Resources\Server\RageCoop.Resources.Management</OutDir>
+	  <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RageCoop.Core">
+      <HintPath>..\..\..\RageCoop-V\RageCoop.Core\bin\Debug\netstandard2.0\ref\RageCoop.Core.dll</HintPath>
+    </Reference>
     <Reference Include="RageCoop.Server">
-      <HintPath>..\..\..\RageCoop-V\Server\bin\Release\net6.0\RageCoop.Server.dll</HintPath>
+      <HintPath>..\..\..\RageCoop-V\RageCoop.Server\bin\Debug\net6.0\ref\RageCoop.Server.dll</HintPath>
     </Reference>
   </ItemGroup>
 
