@@ -12,14 +12,15 @@ namespace RageCoop.Resources.Management
         {
             try
             {
-                ManagementStore= (ManagementStore)JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(CurrentDirectory, "ManagementStore.json")),typeof(ManagementStore));
+                ManagementStore= (ManagementStore)JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(CurrentResource.Directory, "ManagementStore.json")),typeof(ManagementStore));
+                if (ManagementStore==null) { throw new ArgumentNullException(); }
                 API.GetLogger().Info("Loaded ManagementStore.json");
             }
             catch
             {
                 ManagementStore=new ManagementStore();
                 Save();
-                API.GetLogger().Info($"ManagementStore.json was written to {CurrentDirectory}.");
+                API.GetLogger().Info($"ManagementStore.json was written to {CurrentResource.Directory}.");
             }
             API.Events.OnPlayerHandshake+=(s, e) =>
             {
@@ -201,7 +202,7 @@ namespace RageCoop.Resources.Management
             {
                 try
                 {
-                    File.WriteAllText(Path.Combine(CurrentDirectory, "ManagementStore.json"), JsonConvert.SerializeObject(ManagementStore, Newtonsoft.Json.Formatting.Indented));
+                    File.WriteAllText(Path.Combine(CurrentResource.Directory, "ManagementStore.json"), JsonConvert.SerializeObject(ManagementStore, Newtonsoft.Json.Formatting.Indented));
                     return true;
                 }
                 catch (Exception ex)
