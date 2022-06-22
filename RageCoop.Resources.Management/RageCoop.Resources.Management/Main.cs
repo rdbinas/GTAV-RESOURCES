@@ -7,6 +7,7 @@ namespace RageCoop.Resources.Management
     public class Main :ServerScript
     {
         public ManagementStore ManagementStore { get; set; }
+        private object _writeLock=new object();
         public override void OnStart()
         {
             try
@@ -23,7 +24,7 @@ namespace RageCoop.Resources.Management
             API.Events.OnPlayerHandshake+=(s, e) =>
             {
                 Member m;
-                if (ManagementStore.Banned.Contains(e.EndPoint.Address.Address))
+                if (ManagementStore.Banned.Contains(e.EndPoint.Address.ToString()))
                 {
                     e.Deny("You're banned.");
                 }
@@ -100,7 +101,7 @@ namespace RageCoop.Resources.Management
                 {
                     var c =API.GetClientByUsername(username);
                     if (c!=null) {
-                        ManagementStore.Banned.Add(c.Connection.RemoteEndPoint.Address.Address);
+                        ManagementStore.Banned.Add(c.Connection.RemoteEndPoint.Address.ToString());
                         c.Kick(reason);
                         Save();
                         API.SendChatMessage($"{username} was banned.");
@@ -123,7 +124,7 @@ namespace RageCoop.Resources.Management
             {
                 try
                 {
-                    ManagementStore.Banned.Remove(API.GetClientByUsername(username).Connection.RemoteEndPoint.Address.Address);
+                    ManagementStore.Banned.Remove(API.GetClientByUsername(username).Connection.RemoteEndPoint.Address.ToString());
                     Save();
                     API.SendChatMessage($"{username} was unbanned.");
                 }
@@ -196,15 +197,18 @@ namespace RageCoop.Resources.Management
         }
         private bool Save()
         {
-            try
+            lock (_writeLock)
             {
-                File.WriteAllText(Path.Combine(CurrentDirectory, "ManagementStore.json"), JsonConvert.SerializeObject(ManagementStore, Newtonsoft.Json.Formatting.Indented));
-                return true;
-            }
-            catch(Exception ex)
-            {
-                API.GetLogger().Error(ex);
-                return false;
+                try
+                {
+                    File.WriteAllText(Path.Combine(CurrentDirectory, "ManagementStore.json"), JsonConvert.SerializeObject(ManagementStore, Newtonsoft.Json.Formatting.Indented));
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    API.GetLogger().Error(ex);
+                    return false;
+                }
             }
         }
     }

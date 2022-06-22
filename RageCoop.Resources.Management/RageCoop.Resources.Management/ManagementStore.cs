@@ -4,7 +4,7 @@ namespace RageCoop.Resources.Management{
 	public class ManagementStore
 	{
 		public bool AllowGuest { get; set; } = true;
-		public HashSet<long> Banned { get; set; }=new();
+		public HashSet<string> Banned { get; set; }=new();
 		public Dictionary<string, Role> Roles { get; set; } = new()
 		{
 			{ "Admin",new Role() { Permissions=PermissionFlags.All, CommandFilteringMode=1 } },
