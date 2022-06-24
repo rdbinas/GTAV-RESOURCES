@@ -1,6 +1,7 @@
 ﻿using RageCoop.Server.Scripting;
 using RageCoop.Server;
 using Newtonsoft.Json;
+using GTA.Native;
 
 namespace RageCoop.Resources.Management
 {
@@ -10,9 +11,10 @@ namespace RageCoop.Resources.Management
         private object _writeLock=new object();
         public override void OnStart()
         {
+            API.RegisterCommands(this);
             try
             {
-                ManagementStore= (ManagementStore)JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(CurrentResource.Directory, "ManagementStore.json")),typeof(ManagementStore));
+                ManagementStore= (ManagementStore)JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(CurrentResource.DataFolder, "ManagementStore.json")),typeof(ManagementStore));
                 if (ManagementStore==null) { throw new ArgumentNullException(); }
                 API.GetLogger().Info("Loaded ManagementStore.json");
             }
@@ -20,7 +22,7 @@ namespace RageCoop.Resources.Management
             {
                 ManagementStore=new ManagementStore();
                 Save();
-                API.GetLogger().Info($"ManagementStore.json was written to {CurrentResource.Directory}.");
+                API.GetLogger().Info($"ManagementStore.json was written to {CurrentResource.DataFolder}.");
             }
             API.Events.OnPlayerHandshake+=(s, e) =>
             {
@@ -31,60 +33,20 @@ namespace RageCoop.Resources.Management
                 }
                 else if (ManagementStore.Members.TryGetValue(e.Username,out m))
                 {
-                    
+                    if (e.PasswordHash!=m.PassHash)
+                    {
+                        e.Deny("Authentication failed!");
+                    }
                 }
                 else if(!ManagementStore.AllowGuest){
                     e.Deny("You're not authorized");
                 }
             };
             API.Events.OnCommandReceived+=FilterCommand;
-            API.RegisterCommand("kick", (ctx) =>
+            API.Events.OnPlayerReady+=(s,c) =>
             {
-                if (HasPermission(ctx.Client.Username, PermissionFlags.Kick))
-                {
-                    if (ctx.Args.Length<1) { return; }
-                    var reason = "EAT POOP!";
-                    if (ctx.Args.Length>=2) { reason=ctx.Args[1]; }
-                    var c = API.GetClientByUsername(ctx.Args[0]);
-                    if (c!=null)
-                    {
-                       c.Kick(reason);
-                        API.SendChatMessage($"{c.Username} was kicked");
-                    }
-                    else
-                    {
-                        API.SendChatMessage($"Can't find user:{ctx.Args[0]}.", ctx.Client);
-                    }
-                }
-                else
-                {
-                    API.SendChatMessage("You don't have permission to perform this operation",ctx.Client);
-                }
-            });
-            API.RegisterCommand("ban", (ctx) =>
-            {
-                if (HasPermission(ctx.Client.Username, PermissionFlags.Mute))
-                {
-                    if (ctx.Args.Length<1) { return; }
-                    Ban(ctx.Args[0], ctx.Args.Length>2 ? ctx.Args[1] : "EAT POOP!",ctx.Client);
-                }
-                else
-                {
-                    API.SendChatMessage("You don't have permission to perform this operation", ctx.Client);
-                }
-            });
-            API.RegisterCommand("unban", (ctx) =>
-            {
-                if (HasPermission(ctx.Client.Username, PermissionFlags.Mute))
-                {
-                    if (ctx.Args.Length<1) { return; }
-                    Unban(ctx.Args[0]);
-                }
-                else
-                {
-                    API.SendChatMessage("You don't have permission to perform this operation", ctx.Client);
-                }
-            });
+                c.Config.EnableAutoRespawn=false;
+            };
         }
         private void Mute(string username)
         {
@@ -94,33 +56,60 @@ namespace RageCoop.Resources.Management
         {
 
         }
-        private void Ban(string username,string reason,Client sender)
+
+        [Command("ban")]
+        public void Ban(CommandContext ctx)
         {
-            Task.Run(() =>
+            if (HasPermission(ctx.Client.Username, PermissionFlags.Mute))
             {
-                try
+                if (ctx.Args.Length<1) { return; }
+                var username=ctx.Args[0];
+                var reason = ctx.Args.Length>=2 ? ctx.Args[1] : "EAT POOP!";
+                var sender=ctx.Client;
+                Task.Run(() =>
                 {
-                    var c =API.GetClientByUsername(username);
-                    if (c!=null) {
-                        ManagementStore.Banned.Add(c.Connection.RemoteEndPoint.Address.ToString());
-                        c.Kick(reason);
-                        Save();
-                        API.SendChatMessage($"{username} was banned.");
-                    }
-                    else
+                    try
                     {
-                        API.SendChatMessage($"Can't find user:{username}.",sender);
+                        var c = API.GetClientByUsername(username);
+                        if (c!=null)
+                        {
+                            ManagementStore.Banned.Add(c.Connection.RemoteEndPoint.Address.ToString());
+                            c.Kick(reason);
+                            Save();
+                            API.SendChatMessage($"{username} was banned:"+reason);
+                        }
+                        else
+                        {
+                            API.SendChatMessage($"Can't find user:{username}.", sender);
+                        }
+
                     }
-                    
-                }
-                catch (Exception ex)
-                {
-                    API.GetLogger().Error(ex);
-                }
-            });
+                    catch (Exception ex)
+                    {
+                        API.GetLogger().Error(ex);
+                    }
+                });
+            }
+            else
+            {
+                API.SendChatMessage("You don't have permission to perform this operation", ctx.Client);
+            }
         }
-        private void Unban(string username)
+
+        [Command("unban")]
+        public void Unban(CommandContext ctx)
         {
+            if (ctx.Args.Length<1) { return; }
+            var username=ctx.Args[0];
+            if (!HasPermission(ctx.Client.Username, PermissionFlags.Mute))
+            {
+                ctx.Client.SendChatMessage("You don't have permission to perform this operation");
+                return;
+            }
+            else if (username==ctx.Client.Username)
+            {
+                ctx.Client.SendChatMessage("You cannot ban yourself.");
+            }
             Task.Run(() =>
             {
                 try
@@ -134,6 +123,31 @@ namespace RageCoop.Resources.Management
                     API.GetLogger().Error(ex);
                 }
             });
+        }
+
+        [Command("kick")]
+        public void Kick(CommandContext ctx)
+        {
+            if (HasPermission(ctx.Client.Username, PermissionFlags.Kick))
+            {
+                if (ctx.Args.Length<1) { return; }
+                var reason = "EAT POOP!";
+                if (ctx.Args.Length>=2) { reason=ctx.Args[1]; }
+                var c = API.GetClientByUsername(ctx.Args[0]);
+                if (c!=null)
+                {
+                    c.Kick(reason);
+                    API.SendChatMessage($"{c.Username} was kicked");
+                }
+                else
+                {
+                    API.SendChatMessage($"Can't find user:{ctx.Args[0]}.", ctx.Client);
+                }
+            }
+            else
+            {
+                API.SendChatMessage("You don't have permission to perform this operation", ctx.Client);
+            }
         }
         private void FilterCommand(object sender, OnCommandEventArgs e)
         {
@@ -202,7 +216,7 @@ namespace RageCoop.Resources.Management
             {
                 try
                 {
-                    File.WriteAllText(Path.Combine(CurrentResource.Directory, "ManagementStore.json"), JsonConvert.SerializeObject(ManagementStore, Newtonsoft.Json.Formatting.Indented));
+                    File.WriteAllText(Path.Combine(CurrentResource.DataFolder, "ManagementStore.json"), JsonConvert.SerializeObject(ManagementStore, Newtonsoft.Json.Formatting.Indented));
                     return true;
                 }
                 catch (Exception ex)

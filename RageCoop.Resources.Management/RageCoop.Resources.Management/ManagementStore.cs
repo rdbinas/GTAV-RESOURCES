@@ -13,7 +13,8 @@ namespace RageCoop.Resources.Management{
 		};
 		public Dictionary<string,Member> Members { get; set; } = new()
 		{
-			{ "Sausage",new() {Role="Admin",PassHash="iLoveSausage" } }
+			// "ilovesausage" SHA256 hashed string
+			{ "Sausage",new() {Role="Admin",PassHash="FB6F796DFD477E6361A19057EE0235E88820060EC786343229B4D839C01B47C3" } }
 		};
 	}
 	public class Member{
