@@ -62,9 +62,14 @@ namespace RageCoop.Resources.Management
         {
             if (HasPermission(ctx.Client.Username, PermissionFlags.Ban))
             {
-                if (ctx.Args.Length<1) { return; }
-                var username=ctx.Args[0];
+                var username = ctx.Args[0];
                 var reason = ctx.Args.Length>=2 ? ctx.Args[1] : "EAT POOP!";
+                if (ctx.Args.Length<1) { return; }
+                else if (username.ToLower()==ctx.Client.Username.ToLower())
+                {
+                    ctx.Client.SendChatMessage("You cannot ban yourself.");
+                    return;
+                }
                 var sender=ctx.Client;
                 Task.Run(() =>
                 {
@@ -80,7 +85,7 @@ namespace RageCoop.Resources.Management
                         }
                         else
                         {
-                            API.SendChatMessage($"Can't find user:{username}.", sender);
+                            API.SendChatMessage($"Can't find user: {username}", sender);
                         }
 
                     }
@@ -105,10 +110,6 @@ namespace RageCoop.Resources.Management
             {
                 ctx.Client.SendChatMessage("You don't have permission to perform this operation");
                 return;
-            }
-            else if (username==ctx.Client.Username)
-            {
-                ctx.Client.SendChatMessage("You cannot ban yourself.");
             }
             Task.Run(() =>
             {
