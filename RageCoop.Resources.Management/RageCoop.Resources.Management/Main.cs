@@ -60,7 +60,7 @@ namespace RageCoop.Resources.Management
         [Command("ban")]
         public void Ban(CommandContext ctx)
         {
-            if (HasPermission(ctx.Client.Username, PermissionFlags.Mute))
+            if (HasPermission(ctx.Client.Username, PermissionFlags.Ban))
             {
                 if (ctx.Args.Length<1) { return; }
                 var username=ctx.Args[0];
@@ -101,7 +101,7 @@ namespace RageCoop.Resources.Management
         {
             if (ctx.Args.Length<1) { return; }
             var username=ctx.Args[0];
-            if (!HasPermission(ctx.Client.Username, PermissionFlags.Mute))
+            if (!HasPermission(ctx.Client.Username, PermissionFlags.Ban))
             {
                 ctx.Client.SendChatMessage("You don't have permission to perform this operation");
                 return;

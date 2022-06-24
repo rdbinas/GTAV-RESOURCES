@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+
 namespace RageCoop.Resources.Management{
 	public class ManagementStore
 	{
