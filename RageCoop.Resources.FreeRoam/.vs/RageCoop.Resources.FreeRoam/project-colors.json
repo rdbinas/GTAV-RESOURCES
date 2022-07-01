@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "9c182274-c503-4b2b-91b8-ec619f9b6381": {
+      "ProjectGuid": "9c182274-c503-4b2b-91b8-ec619f9b6381",
+      "DisplayName": "RageCoop.Resources.FreeRoam.Server",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}

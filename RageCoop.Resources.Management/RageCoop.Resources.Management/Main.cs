@@ -1,5 +1,9 @@
 ﻿using RageCoop.Server.Scripting;
+
+// Optional
 using RageCoop.Server;
+using RageCoop.Core.Scripting;
+using RageCoop.Core;
 using Newtonsoft.Json;
 using GTA.Native;
 
@@ -16,13 +20,13 @@ namespace RageCoop.Resources.Management
             {
                 ManagementStore= (ManagementStore)JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(CurrentResource.DataFolder, "ManagementStore.json")),typeof(ManagementStore));
                 if (ManagementStore==null) { throw new ArgumentNullException(); }
-                API.GetLogger().Info("Loaded ManagementStore.json");
+                API.Logger.Info("Loaded ManagementStore.json");
             }
             catch
             {
                 ManagementStore=new ManagementStore();
                 Save();
-                API.GetLogger().Info($"ManagementStore.json was written to {CurrentResource.DataFolder}.");
+                API.Logger.Info($"ManagementStore.json was written to {CurrentResource.DataFolder}.");
             }
             API.Events.OnPlayerHandshake+=(s, e) =>
             {
@@ -43,10 +47,6 @@ namespace RageCoop.Resources.Management
                 }
             };
             API.Events.OnCommandReceived+=FilterCommand;
-            API.Events.OnPlayerReady+=(s,c) =>
-            {
-                c.Config.EnableAutoRespawn=false;
-            };
         }
         private void Mute(string username)
         {
@@ -78,26 +78,26 @@ namespace RageCoop.Resources.Management
                         var c = API.GetClientByUsername(username);
                         if (c!=null)
                         {
-                            ManagementStore.Banned.Add(c.Connection.RemoteEndPoint.Address.ToString());
+                            ManagementStore.Banned.Add(c.EndPoint.Address.ToString());
                             c.Kick(reason);
                             Save();
                             API.SendChatMessage($"{username} was banned:"+reason);
                         }
                         else
                         {
-                            API.SendChatMessage($"Can't find user: {username}", sender);
+                            sender.SendChatMessage($"Can't find user: {username}");
                         }
 
                     }
                     catch (Exception ex)
                     {
-                        API.GetLogger().Error(ex);
+                        API.Logger.Error(ex);
                     }
                 });
             }
             else
             {
-                API.SendChatMessage("You don't have permission to perform this operation", ctx.Client);
+                ctx.Client.SendChatMessage("You don't have permission to perform this operation");
             }
         }
 
@@ -115,13 +115,13 @@ namespace RageCoop.Resources.Management
             {
                 try
                 {
-                    ManagementStore.Banned.Remove(API.GetClientByUsername(username).Connection.RemoteEndPoint.Address.ToString());
+                    ManagementStore.Banned.Remove(API.GetClientByUsername(username).EndPoint.Address.ToString());
                     Save();
                     API.SendChatMessage($"{username} was unbanned.");
                 }
                 catch (Exception ex)
                 {
-                    API.GetLogger().Error(ex);
+                    API.Logger.Error(ex);
                 }
             });
         }
@@ -142,12 +142,12 @@ namespace RageCoop.Resources.Management
                 }
                 else
                 {
-                    API.SendChatMessage($"Can't find user:{ctx.Args[0]}.", ctx.Client);
+                    ctx.Client.SendChatMessage($"Can't find user:{ctx.Args[0]}.");
                 }
             }
             else
             {
-                API.SendChatMessage("You don't have permission to perform this operation", ctx.Client);
+                ctx.Client.SendChatMessage("You don't have permission to perform this operation");
             }
         }
         private void FilterCommand(object sender, OnCommandEventArgs e)
@@ -186,7 +186,7 @@ namespace RageCoop.Resources.Management
             }
             if (e.Cancel)
             {
-                API.SendChatMessage("You do not have permission to execute this command", e.Sender);
+                e.Sender.SendChatMessage("You do not have permission to execute this command");
             }
         }
         private bool HasPermission(string username,PermissionFlags permission)
@@ -222,7 +222,7 @@ namespace RageCoop.Resources.Management
                 }
                 catch (Exception ex)
                 {
-                    API.GetLogger().Error(ex);
+                    API.Logger.Error(ex);
                     return false;
                 }
             }
