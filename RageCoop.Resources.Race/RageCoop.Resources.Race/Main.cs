@@ -105,22 +105,12 @@ namespace RageCoop.Resources.Race
                     Blips.Add(b);
                 }
 
-                Blips[0].Scale = 1f;
-                Blips[1].Scale = 0.5f;
-
-                foreach (var client in API.GetAllClients())
-                    Join(client.Value);
-
                 int spawnPoint = 0;
-
-                lock (Session.Players)
-                    foreach (var player in Session.Players)
-                    {
-                        player.Client.SendNativeCall(Hash._SET_ISLAND_HOPPER_ENABLED, "HeistIsland", CayoPericoCheck());
-                        AddCheckpoint(player, 0);
-                        CreateVehicle(player, spawnPoint, true);
-                        spawnPoint++;
-                    }
+                foreach (var client in API.GetAllClients())
+                {
+                    Join(client.Value, spawnPoint);
+                    spawnPoint++;
+                }
 
                 API.SendChatMessage("The race is about to start, get ready");
 
@@ -154,13 +144,11 @@ namespace RageCoop.Resources.Race
                     player.Client.SendNativeCall(Hash.PLAY_SOUND_FRONTEND, 0, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET");
 
                     RemoveCheckpoint(player);
-                    HideBlip(player, player.CheckpointsPassed);
 
                     if (Session.Map.Checkpoints.Length > player.CheckpointsPassed + 1)
                     {
                         player.CheckpointsPassed++;
-                        AddCheckpoint(player, player.CheckpointsPassed);
-                        ShowBlips(player, player.CheckpointsPassed);
+                        AddCheckpoint(player);
                     }
                     else
                     {
@@ -180,67 +168,60 @@ namespace RageCoop.Resources.Race
             }
         }
 
-        public static void AddCheckpoint(Player player, int i)
+        public static void AddCheckpoint(Player player)
         {
-            var next = Session.Map.Checkpoints[i];
-            var last = Session.Map.Checkpoints.Length == i + 1;
-            var pointTo = Session.Map.Checkpoints[last ? i - 1 : i + 1];
+            var next = Session.Map.Checkpoints[player.CheckpointsPassed];
+            var last = Session.Map.Checkpoints.Length == player.CheckpointsPassed + 1;
+            var pointTo = Session.Map.Checkpoints[last ? player.CheckpointsPassed - 1 : player.CheckpointsPassed + 1];
             player.Client.SendNativeCall<int>((o) =>
             {
                 player.CurrentCheckpoint = (int)o;
             }, Hash.CREATE_CHECKPOINT, last ? 4 : 0, next.X, next.Y, next.Z, pointTo.X, pointTo.Y, pointTo.Z, 10f, 241, 247, 57, 180, 0);
+
+            if (Blips.Count > player.CheckpointsPassed)
+                player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[player.CheckpointsPassed].Handle, 1f);
+            if (Blips.Count > player.CheckpointsPassed + 1)
+                player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[player.CheckpointsPassed + 1].Handle, 0.5f);
         }
 
         public static void RemoveCheckpoint(Player player)
         {
             player.Client.SendNativeCall(Hash.DELETE_CHECKPOINT, player.CurrentCheckpoint);
+
+            if (Blips.Count > player.CheckpointsPassed)
+                player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[player.CheckpointsPassed].Handle, 0f);
         }
 
-        public static void ShowBlips(Player player, int i)
+        public void Join(Client client, int spawnPoint)
         {
-            if (Blips.Count > i)
-                player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[i].Handle, 1f);
-            if (Blips.Count > i + 1)
-                player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[i + 1].Handle, 0.5f);
-        }
-
-        public static void HideBlip(Player player, int i)
-        {
-            if (Blips.Count > i)
-                player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[i].Handle, 0f);
-        }
-
-        public void CreateVehicle(Player player, int spawnPoint, bool freeze)
-        {
-            var position = Session.Map.SpawnPoints[spawnPoint % Session.Map.SpawnPoints.Length].Position;
-            var heading = Session.Map.SpawnPoints[spawnPoint % Session.Map.SpawnPoints.Length].Heading;
-            player.Client.Player.Position = position + new Vector3(4, 0, 0);
-            player.VehicleHash = (int)Session.Map.AvailableVehicles[Random.Next(Session.Map.AvailableVehicles.Length)];
-            player.Vehicle = API.Entities.CreateVehicle(player.Client, player.VehicleHash, position, heading);
-            player.Client.SendNativeCall(Hash.SET_PED_INTO_VEHICLE, player.Client.Player.Handle, player.Vehicle.Handle, -1);
-            if (freeze)
-                player.Vehicle.Freeze(true);
-        }
-
-        public void Join(Client client)
-        {
+            Player player;
             lock (Session.Players)
-                if (Session.Players.Any(x => x.Client == client))
-                    return;
-
-            var player = new Player(client);
-
-            if (Session.State == State.Started)
             {
-                client.SendNativeCall(Hash._SET_ISLAND_HOPPER_ENABLED, "HeistIsland", CayoPericoCheck());
-                AddCheckpoint(player, 0);
-                ShowBlips(player, 0);
-                CreateVehicle(player, Random.Next(Session.Map.SpawnPoints.Length), false);
-                API.SendChatMessage($"{client.Username} joined the race");
+                player = Session.Players.FirstOrDefault(x => x.Client == client);
+                if (player == null)
+                {
+                    player = new Player(client);
+                    Session.Players.Add(player);
+                }
             }
 
-            lock (Session.Players)
-                Session.Players.Add(player);
+            var setupPlayer = new Thread((ThreadStart)delegate
+            {
+                client.SendNativeCall(Hash._SET_ISLAND_HOPPER_ENABLED, "HeistIsland", CayoPericoCheck());
+                var position = Session.Map.SpawnPoints[spawnPoint % Session.Map.SpawnPoints.Length].Position;
+                var heading = Session.Map.SpawnPoints[spawnPoint % Session.Map.SpawnPoints.Length].Heading;
+                client.Player.Position = position + new Vector3(4, 0, 1);
+                player.VehicleHash = (int)Session.Map.AvailableVehicles[Random.Next(Session.Map.AvailableVehicles.Length)];
+                player.Vehicle = API.Entities.CreateVehicle(client, player.VehicleHash, position, heading);
+                Thread.Sleep(1000);
+                client.SendNativeCall(Hash.SET_PED_INTO_VEHICLE, client.Player.Handle, player.Vehicle.Handle, -1);
+                AddCheckpoint(player);
+                if (Session.State == State.Started)
+                    API.SendChatMessage($"{client.Username} joined the race");
+                else
+                    player.Vehicle.Freeze(true);
+            });
+            setupPlayer.Start();
         }
 
         public void Leave(Client client, bool disconnected)
@@ -257,8 +238,8 @@ namespace RageCoop.Resources.Race
                 {
                     player.Vehicle.Delete();
                     RemoveCheckpoint(player);
-                    HideBlip(player, player.CheckpointsPassed);
-                    HideBlip(player, player.CheckpointsPassed + 1);
+                    if (Blips.Count > player.CheckpointsPassed + 1)
+                        player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[player.CheckpointsPassed + 1].Handle, 0f);
                     API.SendChatMessage($"{client.Username} left the race");
                 }
 
@@ -303,7 +284,7 @@ namespace RageCoop.Resources.Race
         public void Join(CommandContext ctx)
         {
             if (Session.State == State.Started)
-                Join(ctx.Client);
+                Join(ctx.Client, Random.Next(Session.Map.SpawnPoints.Length));
         }
 
         [Command("leave")]
