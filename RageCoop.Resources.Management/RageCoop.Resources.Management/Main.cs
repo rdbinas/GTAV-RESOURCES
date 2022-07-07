@@ -17,64 +17,6 @@ namespace RageCoop.Resources.Management
         public override void OnStart()
         {
             API.RegisterCommands(this);
-            API.RegisterCommand("spawn", (ctx) =>
-            {
-                API.Entities.CreateVehicle(ctx.Client,VehicleHash.Hydra,ctx.Client.Player.Position+GTA.Math.Vector3.WorldUp*5,0).Freeze(true);
-                // API.Entities.CreateProp(VehicleHash.Hydra,ctx.Client.Player.Position+new GTA.Math.Vector3(0f, 0f, 10f),new());
-            });
-            API.RegisterCommand("delete", (ctx) =>
-            {
-                API.Entities.GetAllProps().ToList().ForEach((x) => { x.Delete(); });
-            });
-            API.RegisterCommand("blip", (ctx) =>
-            {
-                var b=API.Entities.CreateBlip(ctx.Client.Player.Position,0);
-                b.Sprite=BlipSprite.CCTV;
-                b.Scale=3;
-                b.Color=BlipColor.Green;
-                b.Name="Poop";
-            });
-            API.RegisterCommand("addblip", (ctx) =>
-            {
-                foreach(var p in API.Entities.GetAllPeds())
-                {
-                    var b=p.AddBlip();
-                    b.Color=BlipColor.Purple;
-                }
-            });
-            API.RegisterCommand("beee", (ctx) =>
-            {
-                foreach(var b in API.Entities.GetAllBlips())
-                {
-                    ctx.Client.SendNativeCall(Hash.SET_BLIP_SCALE, b.Handle,10f);
-                }
-            });
-            API.RegisterCommand("delblip", (ctx) =>
-            {
-                API.Entities.GetAllBlips().ToList().ForEach((x) => { x.Delete(); });
-            });
-            API.RegisterCommand("propup", (ctx) =>
-            {
-                API.Entities.GetAllProps().ToList().ForEach((x) => { x.Position+=new GTA.Math.Vector3(0f, 0f, 1f); });
-            });
-            API.RegisterCommand("up", (ctx) =>
-            {
-                ctx.Client.Player.Position+=new GTA.Math.Vector3(0f, 0f, 100f);
-                ctx.Client.Player.Rotation=new(50f,50f,50f);
-            });
-            API.RegisterCommand("vehup", (ctx) =>
-            {
-                ctx.Client.Player.LastVehicle.Position+=new GTA.Math.Vector3(0f, 0f, 100f);
-                ctx.Client.Player.LastVehicle.Rotation=new(50f, 50f, 50f);
-            });
-            API.RegisterCommand("freeze", (ctx) =>
-            {
-                ctx.Client.Player.Freeze(true);
-            });
-            API.RegisterCommand("unfreeze", (ctx) =>
-            {
-                ctx.Client.Player.Freeze(false);
-            });
             try
             {
                 ManagementStore= (ManagementStore)JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(CurrentResource.DataFolder, "ManagementStore.json")),typeof(ManagementStore));
