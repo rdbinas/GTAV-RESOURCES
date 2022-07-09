@@ -117,7 +117,7 @@ namespace RageCoop.Resources.Race
                 {
                     Thread.Sleep(10000);
 
-                    API.SendCustomEventQueued(null, Events.CountDown);
+                    API.SendCustomEvent(null, Events.CountDown);
                     Thread.Sleep(3000);
 
                     lock (Session.Players)
