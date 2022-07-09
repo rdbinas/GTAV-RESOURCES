@@ -1,4 +1,5 @@
 ﻿using RageCoop.Server;
+using RageCoop.Server.Scripting;
 
 namespace RageCoop.Resources.Race.Objects
 {
