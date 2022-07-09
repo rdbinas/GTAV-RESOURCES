@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+	  <OutDir>..\..\..\RageCoop-V\bin\Debug\Server\Resources\Client\RageCoop.Resources.Race</OutDir>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RageCoop.Resources.Race.Shared\RageCoop.Resources.Race.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LemonUI.SHVDN3">
+      <HintPath>..\..\..\RageCoop-V\libs\LemonUI.SHVDN3.dll</HintPath>
+    </Reference>
+    <Reference Include="RageCoop.Client">
+      <HintPath>..\..\..\RageCoop-V\bin\Debug\Client\RageCoop.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="RageCoop.Core">
+      <HintPath>..\..\..\RageCoop-V\bin\Debug\Client\RageCoop.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="ScriptHookVDotNet3">
+      <HintPath>..\..\..\RageCoop-V\libs\ScriptHookVDotNet3.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RageCoop.Resources.Race.Shared\RageCoop.Resources.Race.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="RageCoop.Core">
       <HintPath>..\..\..\RageCoop-V\bin\Debug\Core\RageCoop.Core.dll</HintPath>
     </Reference>
