@@ -20,7 +20,7 @@ namespace RageCoop.Resources.Race
 
         public override void OnStart()
         {
-            API.Events.OnPlayerConnected += (s, c) =>
+            API.Events.OnPlayerReady += (s, c) =>
             {
                 if (Session.State != State.Voting && Session.State != State.Preparing)
                     c.SendChatMessage("A race has already started, wait for the next round or use /join to join the race");

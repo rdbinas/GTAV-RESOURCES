@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <OutDir>..\..\..\RageCoop-V\RageCoop.Server\bin\Debug\net6.0\Resources\Server\RageCoop.Resources.Race</OutDir>
+    <OutDir>..\..\..\RageCoop-V\bin\Debug\Server\Resources\Server\RageCoop.Resources.Race</OutDir>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
