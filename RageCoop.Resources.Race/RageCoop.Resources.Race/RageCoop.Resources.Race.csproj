@@ -13,10 +13,10 @@
 
   <ItemGroup>
     <Reference Include="RageCoop.Core">
-      <HintPath>..\..\..\RageCoop-V\RageCoop.Server\bin\Debug\net6.0\RageCoop.Core.dll</HintPath>
+      <HintPath>..\..\..\RageCoop-V\bin\Debug\Core\RageCoop.Core.dll</HintPath>
     </Reference>
     <Reference Include="RageCoop.Server">
-      <HintPath>..\..\..\RageCoop-V\RageCoop.Server\bin\Debug\net6.0\RageCoop.Server.dll</HintPath>
+      <HintPath>..\..\..\RageCoop-V\bin\Debug\Server\RageCoop.Server.dll</HintPath>
     </Reference>
     <Reference Include="ScriptHookVDotNet3">
       <HintPath>..\..\..\RageCoop-V\libs\ScriptHookVDotNet3.dll</HintPath>
