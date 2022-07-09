@@ -323,9 +323,9 @@ namespace RageCoop.Resources.Race
             return Vector3.Distance(Session.Map.SpawnPoints[0].Position, new Vector3(4700f, -5145f, 0f)) < 2000f;
         }
 
-        private static string[] GetMaps()
+        private string[] GetMaps()
         {
-            var folder = Path.Combine(AppContext.BaseDirectory, "Resources", "Server", "RageCoop.Resources.Race", "Maps");
+            var folder = Path.Combine(AppContext.BaseDirectory, CurrentResource.DataFolder, "Maps");
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
@@ -338,9 +338,9 @@ namespace RageCoop.Resources.Race
             return Maps[Random.Next(Maps.Count)].Name;
         }
 
-        private static void InitDB()
+        private void InitDB()
         {
-            var filename = Path.Combine(AppContext.BaseDirectory, "Resources", "Server", "RageCoop.Resources.Race", "times.db");
+            var filename = Path.Combine(AppContext.BaseDirectory, CurrentResource.DataFolder, "times.db");
 
             if (!File.Exists(filename))
                 SQLiteConnection.CreateFile(filename);
