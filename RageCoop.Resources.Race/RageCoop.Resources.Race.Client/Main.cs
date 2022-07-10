@@ -126,6 +126,7 @@ namespace RageCoop.Resources.Race
 
         public override void OnStop()
         {
+            _checkpoints.Clear();
             API.QueueAction(() =>
             {
                 ClearBlips();
