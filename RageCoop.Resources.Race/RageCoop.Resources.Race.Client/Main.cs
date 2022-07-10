@@ -18,6 +18,10 @@ namespace RageCoop.Resources.Race
         readonly List<Vector3> _checkpoints = new List<Vector3>();
         Blip _nextBlip = null;
         Blip _secondBlip = null;
+        uint _raceStart;
+        uint _seconds;
+        int _lasttime = Environment.TickCount;
+        bool _isInRace = false;
 
         public override void OnStart()
         {
@@ -30,9 +34,15 @@ namespace RageCoop.Resources.Race
 
         private void OnTick()
         {
+            if (Environment.TickCount >= _lasttime + 1000)
+            {
+                _seconds++;
+                _lasttime = Environment.TickCount;
+            }
+
+            var res = ResolutionMaintainRatio;
             if (_countdown > -1 && _countdown <= 3)
             {
-                var res = ResolutionMaintainRatio;
                 new LemonUI.Elements.ScaledText(new Point((int)res.Width/2,260*1080/720), _countdown == 0 ? "GO" : _countdown.ToString()) 
                 {
                     Alignment = Alignment.Center,
@@ -40,12 +50,28 @@ namespace RageCoop.Resources.Race
                     Font=GTA.UI.Font.Pricedown,
                     Color=Color.White 
                 }.Draw();
+                if (_fadeoutSprite?.Color.A > 2)
+                {
+                    _fadeoutSprite.Color = Color.FromArgb(_fadeoutSprite.Color.A - 2, _fadeoutSprite.Color.R, _fadeoutSprite.Color.G, _fadeoutSprite.Color.B);
+                    _fadeoutSprite.Draw();
+                }
             }
-            if (_fadeoutSprite?.Color.A > 2)
+
+            var safe = SafezoneBounds;
+            if (_isInRace)
             {
-                _fadeoutSprite.Color = Color.FromArgb(_fadeoutSprite.Color.A - 2, _fadeoutSprite.Color.R, _fadeoutSprite.Color.G,
-                    _fadeoutSprite.Color.B);
-                _fadeoutSprite.Draw();
+                new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 180, (int)res.Height - safe.Y - 135), "TIME")
+                {
+                    Scale = 0.3f,
+                    Color = Color.White
+                }.Draw();
+                new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 20, (int)res.Height - safe.Y - 147), FormatTime(_seconds - _raceStart))
+                {
+                    Alignment = Alignment.Right,
+                    Scale = 0.5f,
+                    Font = GTA.UI.Font.ChaletLondon,
+                    Color = Color.White
+                }.Draw();
             }
 
             if (_checkpoints.Count > 0)
@@ -81,9 +107,12 @@ namespace RageCoop.Resources.Race
                     Function.Call(Hash.PLAY_SOUND_FRONTEND, 0, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET");
                     _checkpoints.RemoveAt(0);
                     ClearBlips();
+                    if (_checkpoints.Count == 0)
+                        _isInRace = false;
                 }
             }
         }
+
         private void CountDown(CustomEventReceivedArgs obj)
         {
             Task.Run(() =>
@@ -99,6 +128,8 @@ namespace RageCoop.Resources.Race
                     });
                     Thread.Sleep(1000);
                 }
+                _raceStart = _seconds;
+                _isInRace = true;
             });
         }
 
@@ -114,6 +145,7 @@ namespace RageCoop.Resources.Race
         {
             _checkpoints.Clear();
             API.QueueAction(() => { ClearBlips(); });
+            _isInRace = false;
         }
 
         private void ClearBlips()
@@ -133,6 +165,14 @@ namespace RageCoop.Resources.Race
                 Function.Call(Hash.ON_ENTER_SP);
             });
         }
+
+        public string FormatTime(uint seconds)
+        {
+            var minutes = Convert.ToInt32(Math.Floor(seconds / 60f));
+            var secs = seconds % 60;
+            return string.Format("{0:00}:{1:00}", minutes, secs);
+        }
+
         public static SizeF ResolutionMaintainRatio
         {
             get
@@ -146,6 +186,30 @@ namespace RageCoop.Resources.Race
                 float width = 1080f * ratio;
                 // Finally, return a SizeF
                 return new SizeF(width, 1080f);
+            }
+        }
+
+        public static Point SafezoneBounds
+        {
+            get
+            {
+                // Get the size of the safezone as a float
+                float t = Function.Call<float>(Hash.GET_SAFE_ZONE_SIZE);
+                // Round the value with a max of 2 decimal places and do some calculations
+                double g = Math.Round(Convert.ToDouble(t), 2);
+                g = (g * 100) - 90;
+                g = 10 - g;
+
+                // Then, get the screen resolution
+                int screenw = Screen.Resolution.Width;
+                int screenh = Screen.Resolution.Height;
+                // Calculate the ratio
+                float ratio = (float)screenw / screenh;
+                // And this thing (that I don't know what it does)
+                float wmp = ratio * 5.4f;
+
+                // Finally, return a new point with the correct resolution
+                return new Point((int)Math.Round(g * wmp), (int)Math.Round(g * 5.4f));
             }
         }
     }
