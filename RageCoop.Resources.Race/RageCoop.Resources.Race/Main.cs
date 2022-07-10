@@ -12,7 +12,7 @@ namespace RageCoop.Resources.Race
     {
         private static List<Map> Maps;
         private static Session Session;
-        private static readonly List<ServerBlip> Blips = new();
+        private readonly List<object> Checkpoints = new();
 
         private readonly XmlSerializer Serializer = new(typeof(Map));
         private static readonly Random Random = new();
@@ -26,9 +26,6 @@ namespace RageCoop.Resources.Race
                     c.SendChatMessage("A race has already started, wait for the next round or use /join to join the race");
                 else
                     c.SendChatMessage("The race will start soon, use /vote to vote for a map");
-
-                c.SendNativeCall(Hash.REQUEST_SCRIPT_AUDIO_BANK, "HUD_MINI_GAME_SOUNDSET", true);
-                c.SendNativeCall(Hash.ON_ENTER_MP);
             };
             API.Events.OnPlayerDisconnected += (s, c) =>
             {
@@ -61,10 +58,7 @@ namespace RageCoop.Resources.Race
                 Session.Votes = new Dictionary<Client, string>();
                 lock (Session.Players)
                     foreach (var player in Session.Players)
-                    {
-                        RemoveCheckpoint(player);
                         player.CheckpointsPassed = 0;
-                    }
                 API.SendChatMessage("Starting in 15 seconds, use /vote to vote for a map");
             }
 
@@ -76,9 +70,6 @@ namespace RageCoop.Resources.Race
                     prop.Delete();
                 foreach (var vehicle in API.Entities.GetAllVehicles())
                     vehicle.Delete();
-                foreach (var blip in API.Entities.GetAllBlips())
-                    blip.Delete();
-                Blips.Clear();
 
                 var map = Session.Votes.GroupBy(x => x.Value).OrderByDescending(vote => vote.Count()).FirstOrDefault()?.Key ?? GetRandomMap();
                 Session.Map = Maps.First(x => x.Name == map);
@@ -95,15 +86,9 @@ namespace RageCoop.Resources.Race
                         API.SendNativeCall(null, Hash._SET_OBJECT_TEXTURE_VARIATION, p.Handle, prop.Texture);
                 }
 
-                foreach (var blip in Session.Map.Checkpoints)
-                {
-                    var b = API.Entities.CreateBlip(blip, 0);
-                    b.Sprite = GTA.BlipSprite.Standard;
-                    b.Color = GTA.BlipColor.Yellow2;
-                    b.Name = "Checkpoint";
-                    b.Scale = 0f;
-                    Blips.Add(b);
-                }
+                Checkpoints.Clear();
+                foreach (var checkpoint in Session.Map.Checkpoints)
+                    Checkpoints.Add(checkpoint);
 
                 int spawnPoint = 0;
                 foreach (var client in API.GetAllClients())
@@ -137,15 +122,8 @@ namespace RageCoop.Resources.Race
                     player = Session.Players.FirstOrDefault(x => x.Client == c);
                 if (player != null && Vector3.Distance(player.Client.Player.Position, Session.Map.Checkpoints[player.CheckpointsPassed]) < 15f)
                 {
-                    player.Client.SendNativeCall(Hash.PLAY_SOUND_FRONTEND, 0, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET");
-
-                    RemoveCheckpoint(player);
-
                     if (Session.Map.Checkpoints.Length > player.CheckpointsPassed + 1)
-                    {
                         player.CheckpointsPassed++;
-                        AddCheckpoint(player);
-                    }
                     else
                     {
                         Session.State = State.Voting;
@@ -162,30 +140,6 @@ namespace RageCoop.Resources.Race
                     }
                 }
             }
-        }
-
-        public static void AddCheckpoint(Player player)
-        {
-            var next = Session.Map.Checkpoints[player.CheckpointsPassed];
-            var last = Session.Map.Checkpoints.Length == player.CheckpointsPassed + 1;
-            var pointTo = Session.Map.Checkpoints[last ? player.CheckpointsPassed - 1 : player.CheckpointsPassed + 1];
-            player.Client.SendNativeCall<int>((o) =>
-            {
-                player.CurrentCheckpoint = (int)o;
-            }, Hash.CREATE_CHECKPOINT, last ? 4 : 0, next.X, next.Y, next.Z, pointTo.X, pointTo.Y, pointTo.Z, 10f, 241, 247, 57, 180, 0);
-
-            if (Blips.Count > player.CheckpointsPassed)
-                player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[player.CheckpointsPassed].Handle, 1f);
-            if (Blips.Count > player.CheckpointsPassed + 1)
-                player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[player.CheckpointsPassed + 1].Handle, 0.5f);
-        }
-
-        public static void RemoveCheckpoint(Player player)
-        {
-            player.Client.SendNativeCall(Hash.DELETE_CHECKPOINT, player.CurrentCheckpoint);
-
-            if (Blips.Count > player.CheckpointsPassed)
-                player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[player.CheckpointsPassed].Handle, 0f);
         }
 
         public void Join(Client client, int spawnPoint)
@@ -211,7 +165,7 @@ namespace RageCoop.Resources.Race
                 player.Vehicle = API.Entities.CreateVehicle(client, player.VehicleHash, position, heading);
                 Thread.Sleep(1000);
                 client.SendNativeCall(Hash.SET_PED_INTO_VEHICLE, client.Player.Handle, player.Vehicle.Handle, -1);
-                AddCheckpoint(player);
+                client.SendCustomEvent(Events.StartCheckpointSequence, Checkpoints.ToArray());
                 if (Session.State == State.Started)
                     API.SendChatMessage($"{client.Username} joined the race");
                 else
@@ -233,9 +187,7 @@ namespace RageCoop.Resources.Race
                 if (!disconnected)
                 {
                     player.Vehicle.Delete();
-                    RemoveCheckpoint(player);
-                    if (Blips.Count > player.CheckpointsPassed + 1)
-                        player.Client.SendNativeCall(Hash.SET_BLIP_SCALE, Blips[player.CheckpointsPassed + 1].Handle, 0f);
+                    client.SendCustomEvent(Events.LeaveRace);
                     API.SendChatMessage($"{client.Username} left the race");
                 }
 
