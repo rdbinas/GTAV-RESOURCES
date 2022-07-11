@@ -157,7 +157,8 @@ namespace RageCoop.Resources.Race
 
             var setupPlayer = new Thread((ThreadStart)delegate
             {
-                client.SendNativeCall(Hash._SET_ISLAND_HOPPER_ENABLED, "HeistIsland", CayoPericoCheck());
+                client.SendNativeCall(Hash._SET_ISLAND_HOPPER_ENABLED, "HeistIsland",
+                    Session.Map.SpawnPoints[0].Position.DistanceTo2D(new Vector2(4700f, -5145f)) < 2000f);
                 var position = Session.Map.SpawnPoints[spawnPoint % Session.Map.SpawnPoints.Length].Position;
                 var heading = Session.Map.SpawnPoints[spawnPoint % Session.Map.SpawnPoints.Length].Heading;
                 client.Player.Position = position + new Vector3(4, 0, 1);
@@ -264,11 +265,6 @@ namespace RageCoop.Resources.Race
                     player.Client.SendNativeCall(Hash.SET_VEHICLE_ENGINE_ON, player.Vehicle.Handle, true, true);
                 }
             }
-        }
-
-        private static bool CayoPericoCheck()
-        {
-            return Vector3.Distance(Session.Map.SpawnPoints[0].Position, new Vector3(4700f, -5145f, 0f)) < 2000f;
         }
 
         private string[] GetMaps()

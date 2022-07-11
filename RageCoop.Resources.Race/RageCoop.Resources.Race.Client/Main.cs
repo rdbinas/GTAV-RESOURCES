@@ -111,6 +111,14 @@ namespace RageCoop.Resources.Race
                         _isInRace = false;
                 }
             }
+
+            Function.Call(Hash.SET_MINIMAP_HIDE_FOW, true);
+            if (Game.Player.Character.Position.DistanceTo2D(new Vector2(4700f, -5145f)) < 2000f &&
+                Function.Call<int>(Hash.GET_INTERIOR_FROM_ENTITY, Game.Player.Character) == 0)
+            {
+                Function.Call(Hash.SET_RADAR_AS_EXTERIOR_THIS_FRAME);
+                Function.Call(Hash.SET_RADAR_AS_INTERIOR_THIS_FRAME, 0xc0a90510, 4700f, -5145f, 0, 0);
+            }
         }
 
         private void CountDown(CustomEventReceivedArgs obj)
