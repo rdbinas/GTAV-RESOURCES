@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <OutDir>..\..\..\RageCoop-V\bin\Debug\Server\Resources\Server\RageCoop.Resources.Race</OutDir>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>

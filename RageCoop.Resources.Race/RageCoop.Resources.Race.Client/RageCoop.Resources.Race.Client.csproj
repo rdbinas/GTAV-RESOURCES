@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
@@ -23,6 +23,7 @@
     <Reference Include="ScriptHookVDotNet3">
       <HintPath>..\..\..\RageCoop-V\libs\ScriptHookVDotNet3.dll</HintPath>
     </Reference>
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
 </Project>

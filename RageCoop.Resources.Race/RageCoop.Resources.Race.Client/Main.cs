@@ -22,6 +22,7 @@ namespace RageCoop.Resources.Race
         uint _seconds;
         int _lasttime = Environment.TickCount;
         bool _isInRace = false;
+        Vector3? _lastCheckPoint;
 
         public override void OnStart()
         {
@@ -29,8 +30,10 @@ namespace RageCoop.Resources.Race
             API.RegisterCustomEventHandler(Events.StartCheckpointSequence, Checkpoints);
             API.RegisterCustomEventHandler(Events.LeaveRace, LeaveRace);
             API.Events.OnTick+=OnTick;
+            API.Events.OnKeyDown+=OnKeyDown;
             API.QueueAction(() => { Function.Call(Hash.ON_ENTER_MP); });
         }
+
 
         private void OnTick()
         {
@@ -105,6 +108,7 @@ namespace RageCoop.Resources.Race
                 {
                     Function.Call(Hash.REQUEST_SCRIPT_AUDIO_BANK, "HUD_MINI_GAME_SOUNDSET", true);
                     Function.Call(Hash.PLAY_SOUND_FRONTEND, 0, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET");
+                    _lastCheckPoint=_checkpoints[0];
                     _checkpoints.RemoveAt(0);
                     ClearBlips();
                     if (_checkpoints.Count == 0)
@@ -119,6 +123,43 @@ namespace RageCoop.Resources.Race
                 Function.Call(Hash.SET_RADAR_AS_EXTERIOR_THIS_FRAME);
                 Function.Call(Hash.SET_RADAR_AS_INTERIOR_THIS_FRAME, 0xc0a90510, 4700f, -5145f, 0, 0);
             }
+        }
+        private void OnKeyDown(object s, System.Windows.Forms.KeyEventArgs e)
+        {
+            switch (e.KeyCode)
+            {
+                case System.Windows.Forms.Keys.B:
+                    Respawn();
+                    break;
+            }
+        }
+        private void Respawn()
+        {
+            if (!_isInRace||_checkpoints.Count==0|| !_lastCheckPoint.HasValue)
+            {
+                return;
+            }
+            Screen.FadeOut(1000);
+            Task.Run(() =>
+            {
+                Thread.Sleep(1000);
+                API.QueueAction(() =>
+                {
+                    var dir = _checkpoints[0] - _lastCheckPoint.Value;
+                    var heading = (float)(-Math.Atan2(dir.X, dir.Y) * 180.0 / Math.PI);
+                    Vehicle veh = Game.Player.LastVehicle;
+                    var player = Game.Player;
+                    veh.Position=_lastCheckPoint.Value;
+                    veh.Heading = heading;
+                    Function.Call(Hash.STOP_ENTITY_FIRE, veh);
+                    Function.Call(Hash.SET_VEHICLE_ENGINE_ON, Game.Player.LastVehicle.Handle, true, true);
+                    veh.Repair();
+                    player.Character.SetIntoVehicle(veh, VehicleSeat.Driver);
+
+                    Screen.FadeIn(1000);
+                });
+
+            });
         }
 
         private void CountDown(CustomEventReceivedArgs obj)
@@ -144,6 +185,7 @@ namespace RageCoop.Resources.Race
         private void Checkpoints(CustomEventReceivedArgs obj)
         {
             _checkpoints.Clear();
+            _lastCheckPoint=null;
             foreach (var item in obj.Args)
                 _checkpoints.Add((Vector3)item);
             API.QueueAction(() => { ClearBlips(); });

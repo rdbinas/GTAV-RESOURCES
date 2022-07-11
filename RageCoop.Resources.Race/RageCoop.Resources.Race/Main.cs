@@ -100,7 +100,7 @@ namespace RageCoop.Resources.Race
                 API.SendChatMessage("The race is about to start, get ready");
                 var countdown = new Thread((ThreadStart)delegate
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(10000);
 
                     API.SendCustomEvent(null, Events.CountDown);
                     Thread.Sleep(3000);
