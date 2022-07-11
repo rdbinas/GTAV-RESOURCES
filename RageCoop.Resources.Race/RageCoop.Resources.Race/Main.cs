@@ -98,6 +98,7 @@ namespace RageCoop.Resources.Race
                 }
 
                 API.SendChatMessage("The race is about to start, get ready");
+                API.SendChatMessage("Press Y to respawn at last checkpoint");
                 var countdown = new Thread((ThreadStart)delegate
                 {
                     Thread.Sleep(10000);

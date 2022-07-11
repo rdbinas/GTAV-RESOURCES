@@ -128,7 +128,7 @@ namespace RageCoop.Resources.Race
         {
             switch (e.KeyCode)
             {
-                case System.Windows.Forms.Keys.B:
+                case System.Windows.Forms.Keys.Y:
                     Respawn();
                     break;
             }
