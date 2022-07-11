@@ -160,8 +160,8 @@ namespace RageCoop.Resources.Race
 
             var setupPlayer = new Thread((ThreadStart)delegate
             {
-                client.SendNativeCall(Hash._SET_ISLAND_HOPPER_ENABLED, "HeistIsland",
-                    Session.Map.SpawnPoints[0].Position.DistanceTo2D(new Vector2(4700f, -5145f)) < 2000f);
+                var cayo = Session.Map.SpawnPoints[0].Position.DistanceTo2D(new Vector2(4700f, -5145f)) < 2000f;
+                client.SendNativeCall(Hash._SET_ISLAND_HOPPER_ENABLED, "HeistIsland", cayo);
                 var position = Session.Map.SpawnPoints[spawnPoint % Session.Map.SpawnPoints.Length].Position;
                 var heading = Session.Map.SpawnPoints[spawnPoint % Session.Map.SpawnPoints.Length].Heading;
                 client.Player.Position = position + new Vector3(4, 0, 1);
@@ -169,6 +169,7 @@ namespace RageCoop.Resources.Race
                 player.Vehicle = API.Entities.CreateVehicle(client, player.VehicleHash, position, heading);
                 Thread.Sleep(1000);
                 client.SendNativeCall(Hash.SET_PED_INTO_VEHICLE, client.Player.Handle, player.Vehicle.Handle, -1);
+                client.SendNativeCall(Hash._SET_AI_GLOBAL_PATH_NODES_TYPE, cayo);
                 client.SendCustomEvent(Events.StartCheckpointSequence, Checkpoints.ToArray());
                 if (Session.State == State.Started)
                     API.SendChatMessage($"{client.Username} joined the race");
