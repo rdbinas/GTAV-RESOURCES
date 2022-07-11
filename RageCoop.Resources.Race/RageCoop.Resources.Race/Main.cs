@@ -35,6 +35,7 @@ namespace RageCoop.Resources.Race
 
             API.RegisterCommands(this);
             API.RegisterCustomEventHandler(Events.CheckpointPassed, CheckpointPassed);
+            API.RegisterCustomEventHandler(Events.Cheating, Cheating);
 
             Session.State = State.Voting;
             Session.Votes = new Dictionary<Client, string>();
@@ -205,6 +206,11 @@ namespace RageCoop.Resources.Race
                     Session.State = State.Voting;
         }
 
+        public void Cheating(CustomEventReceivedArgs obj)
+        {
+            API.SendChatMessage($"{obj.Sender.Username} is cheating");
+        }
+
         [Command("vote")]
         public void Vote(CommandContext ctx)
         {
@@ -237,7 +243,10 @@ namespace RageCoop.Resources.Race
         public void Join(CommandContext ctx)
         {
             if (Session.State == State.Started)
+            {
                 Join(ctx.Client, Random.Next(Session.Map.SpawnPoints.Length));
+                ctx.Client.SendCustomEvent(Events.JoinRace);
+            }
         }
 
         [Command("leave")]

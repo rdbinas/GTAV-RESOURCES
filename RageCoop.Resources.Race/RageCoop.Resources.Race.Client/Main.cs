@@ -23,11 +23,13 @@ namespace RageCoop.Resources.Race
         int _lasttime = Environment.TickCount;
         bool _isInRace = false;
         Vector3? _lastCheckPoint;
+        int _cheating = 0;
 
         public override void OnStart()
         {
             API.RegisterCustomEventHandler(Events.CountDown, CountDown);
             API.RegisterCustomEventHandler(Events.StartCheckpointSequence, Checkpoints);
+            API.RegisterCustomEventHandler(Events.JoinRace, JoinRace);
             API.RegisterCustomEventHandler(Events.LeaveRace, LeaveRace);
             API.Events.OnTick+=OnTick;
             API.QueueAction(() => { Function.Call(Hash.ON_ENTER_MP); });
@@ -40,6 +42,19 @@ namespace RageCoop.Resources.Race
             {
                 _seconds++;
                 _lasttime = Environment.TickCount;
+
+                var veh = Game.Player.Character.CurrentVehicle;
+                if (veh != null)
+                {
+                    if (_isInRace && veh.HeightAboveGround > 1f && !veh.IsAircraft && veh.Velocity.Length() < 5f)
+                    {
+                        _cheating++;
+                        if (_cheating > 5)
+                            API.SendCustomEvent(Events.Cheating);
+                    }
+                    else
+                        _cheating = 0;
+                }
             }
 
             var res = ResolutionMaintainRatio;
@@ -188,6 +203,11 @@ namespace RageCoop.Resources.Race
             foreach (var item in obj.Args)
                 _checkpoints.Add((Vector3)item);
             API.QueueAction(() => { ClearBlips(); });
+        }
+
+        private void JoinRace(CustomEventReceivedArgs obj)
+        {
+            _isInRace = true;
         }
 
         private void LeaveRace(CustomEventReceivedArgs obj)
