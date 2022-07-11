@@ -81,7 +81,10 @@ namespace RageCoop.Resources.Race
             {
                 World.DrawMarker(MarkerType.VerticalCylinder, _checkpoints[0], new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(10f, 10f, 2f), Color.FromArgb(100, 241, 247, 57));
                 if (_nextBlip == null)
+                {
                     _nextBlip = World.CreateBlip(_checkpoints[0]);
+                    _nextBlip.ShowRoute = true;
+                }
 
                 if (_checkpoints.Count > 1)
                 {
@@ -104,12 +107,13 @@ namespace RageCoop.Resources.Race
                     _nextBlip.Sprite = BlipSprite.RaceFinish;
                 }
 
-                if (Game.Player.Character.IsInVehicle() && Game.Player.Character.IsInRange(_checkpoints[0], 10f))
+                if (_isInRace && Game.Player.Character.IsInVehicle() && Game.Player.Character.IsInRange(_checkpoints[0], 10f))
                 {
                     Function.Call(Hash.REQUEST_SCRIPT_AUDIO_BANK, "HUD_MINI_GAME_SOUNDSET", true);
                     Function.Call(Hash.PLAY_SOUND_FRONTEND, 0, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET");
                     _lastCheckPoint=_checkpoints[0];
                     _checkpoints.RemoveAt(0);
+                    API.SendCustomEvent(Events.CheckpointPassed, (object)_checkpoints.Count);
                     ClearBlips();
                     if (_checkpoints.Count == 0)
                         _isInRace = false;
@@ -124,6 +128,7 @@ namespace RageCoop.Resources.Race
                 Function.Call(Hash.SET_RADAR_AS_INTERIOR_THIS_FRAME, 0xc0a90510, 4700f, -5145f, 0, 0);
             }
         }
+
         private void OnKeyDown(object s, System.Windows.Forms.KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -133,6 +138,7 @@ namespace RageCoop.Resources.Race
                     break;
             }
         }
+
         private void Respawn()
         {
             if (!_isInRace||_checkpoints.Count==0|| !_lastCheckPoint.HasValue)
@@ -148,17 +154,14 @@ namespace RageCoop.Resources.Race
                     var dir = _checkpoints[0] - _lastCheckPoint.Value;
                     var heading = (float)(-Math.Atan2(dir.X, dir.Y) * 180.0 / Math.PI);
                     Vehicle veh = Game.Player.LastVehicle;
-                    var player = Game.Player;
                     veh.Position=_lastCheckPoint.Value;
                     veh.Heading = heading;
-                    Function.Call(Hash.STOP_ENTITY_FIRE, veh);
-                    Function.Call(Hash.SET_VEHICLE_ENGINE_ON, Game.Player.LastVehicle.Handle, true, true);
+                    if (veh.IsOnFire)
+                        Function.Call(Hash.STOP_ENTITY_FIRE, veh);
                     veh.Repair();
-                    player.Character.SetIntoVehicle(veh, VehicleSeat.Driver);
-
+                    Game.Player.Character.SetIntoVehicle(veh, VehicleSeat.Driver);
                     Screen.FadeIn(1000);
                 });
-
             });
         }
 
@@ -209,11 +212,7 @@ namespace RageCoop.Resources.Race
         public override void OnStop()
         {
             _checkpoints.Clear();
-            API.QueueAction(() =>
-            {
-                ClearBlips();
-                Function.Call(Hash.ON_ENTER_SP);
-            });
+            API.QueueAction(() => { ClearBlips(); });
         }
 
         public string FormatTime(uint seconds)

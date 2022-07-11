@@ -34,6 +34,7 @@ namespace RageCoop.Resources.Race
             API.Events.OnPlayerUpdate += OnPlayerUpdate;
 
             API.RegisterCommands(this);
+            API.RegisterCustomEventHandler(Events.CheckpointPassed, CheckpointPassed);
 
             Session.State = State.Voting;
             Session.Votes = new Dictionary<Client, string>();
@@ -77,7 +78,6 @@ namespace RageCoop.Resources.Race
                 var record = Record(map);
                 if (record.Item1 > 0)
                     API.SendChatMessage($"Record: {TimeSpan.FromMilliseconds(record.Item1):m\\:ss\\.ff} by {record.Item2}");
-                API.SendChatMessage("Use /respawn to return to the last checkpoint or /leave to leave the race");
 
                 foreach (var prop in Session.Map.DecorativeProps)
                 {
@@ -115,17 +115,19 @@ namespace RageCoop.Resources.Race
                 });
                 countdown.Start();
             }
+        }
 
+        public void CheckpointPassed(CustomEventReceivedArgs obj)
+        {
             if (Session.State == State.Started)
             {
                 Player player;
                 lock (Session.Players)
-                    player = Session.Players.FirstOrDefault(x => x.Client == c);
-                if (player != null && Vector3.Distance(player.Client.Player.Position, Session.Map.Checkpoints[player.CheckpointsPassed]) < 15f)
+                    player = Session.Players.FirstOrDefault(x => x.Client == obj.Sender);
+                if (player != null)
                 {
-                    if (Session.Map.Checkpoints.Length > player.CheckpointsPassed + 1)
-                        player.CheckpointsPassed++;
-                    else
+                    player.CheckpointsPassed = Session.Map.Checkpoints.Length - (int)obj.Args[0];
+                    if (player.CheckpointsPassed == Session.Map.Checkpoints.Length)
                     {
                         Session.State = State.Voting;
 
