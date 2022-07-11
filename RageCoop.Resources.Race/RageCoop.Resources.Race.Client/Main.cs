@@ -30,7 +30,6 @@ namespace RageCoop.Resources.Race
             API.RegisterCustomEventHandler(Events.StartCheckpointSequence, Checkpoints);
             API.RegisterCustomEventHandler(Events.LeaveRace, LeaveRace);
             API.Events.OnTick+=OnTick;
-            API.Events.OnKeyDown+=OnKeyDown;
             API.QueueAction(() => { Function.Call(Hash.ON_ENTER_MP); });
         }
 
@@ -107,19 +106,28 @@ namespace RageCoop.Resources.Race
                     _nextBlip.Sprite = BlipSprite.RaceFinish;
                 }
 
-                if (_isInRace && Game.Player.Character.IsInVehicle() && Game.Player.Character.IsInRange(_checkpoints[0], 10f))
+                if (_isInRace)
                 {
-                    Function.Call(Hash.REQUEST_SCRIPT_AUDIO_BANK, "HUD_MINI_GAME_SOUNDSET", true);
-                    Function.Call(Hash.PLAY_SOUND_FRONTEND, 0, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET");
-                    _lastCheckPoint=_checkpoints[0];
-                    _checkpoints.RemoveAt(0);
-                    API.SendCustomEvent(Events.CheckpointPassed, (object)_checkpoints.Count);
-                    ClearBlips();
-                    if (_checkpoints.Count == 0)
-                        _isInRace = false;
+                    if (Game.Player.Character.IsInVehicle() && Game.Player.Character.IsInRange(_checkpoints[0], 10f))
+                    {
+                        Function.Call(Hash.REQUEST_SCRIPT_AUDIO_BANK, "HUD_MINI_GAME_SOUNDSET", true);
+                        Function.Call(Hash.PLAY_SOUND_FRONTEND, 0, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET");
+                        _lastCheckPoint = _checkpoints[0];
+                        _checkpoints.RemoveAt(0);
+                        API.SendCustomEvent(Events.CheckpointPassed, (object)_checkpoints.Count);
+                        ClearBlips();
+                        if (_checkpoints.Count == 0)
+                            _isInRace = false;
+                    }
+
+                    if (Game.IsControlJustPressed(Control.VehicleCinCam))
+                        Respawn();
                 }
             }
 
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleCinCam);
+            Function.Call(Hash.SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE, Game.Player.Character, 1); // don't fall from bike
+            Function.Call(Hash.SET_PED_CONFIG_FLAG, Game.Player.Character, 32, false); // don't fly through windshield
             Function.Call(Hash.SET_MINIMAP_HIDE_FOW, true);
             if (Game.Player.Character.Position.DistanceTo2D(new Vector2(4700f, -5145f)) < 2000f &&
                 Function.Call<int>(Hash.GET_INTERIOR_FROM_ENTITY, Game.Player.Character) == 0)
@@ -129,22 +137,10 @@ namespace RageCoop.Resources.Race
             }
         }
 
-        private void OnKeyDown(object s, System.Windows.Forms.KeyEventArgs e)
-        {
-            switch (e.KeyCode)
-            {
-                case System.Windows.Forms.Keys.Y:
-                    Respawn();
-                    break;
-            }
-        }
-
         private void Respawn()
         {
-            if (!_isInRace||_checkpoints.Count==0|| !_lastCheckPoint.HasValue)
-            {
+            if (!_lastCheckPoint.HasValue)
                 return;
-            }
             Screen.FadeOut(1000);
             Task.Run(() =>
             {
