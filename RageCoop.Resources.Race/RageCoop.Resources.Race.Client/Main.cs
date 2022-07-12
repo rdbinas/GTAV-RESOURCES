@@ -46,7 +46,7 @@ namespace RageCoop.Resources.Race
                 var veh = Game.Player.Character.CurrentVehicle;
                 if (veh != null)
                 {
-                    if (_isInRace && veh.HeightAboveGround > 1f && !veh.IsAircraft && veh.Velocity.Length() < 5f)
+                    if (_isInRace && veh.HeightAboveGround > 1f && !veh.IsInAir && !veh.IsInWater)
                     {
                         _cheating++;
                         if (_cheating > 5)
@@ -207,6 +207,7 @@ namespace RageCoop.Resources.Race
 
         private void JoinRace(CustomEventReceivedArgs obj)
         {
+            _raceStart = _seconds;
             _isInRace = true;
         }
 
