@@ -32,6 +32,7 @@ namespace RageCoop.Resources.Race
             API.RegisterCustomEventHandler(Events.JoinRace, JoinRace);
             API.RegisterCustomEventHandler(Events.LeaveRace, LeaveRace);
             API.Events.OnTick+=OnTick;
+            API.Events.OnKeyDown+=OnKeyDown;
             API.QueueAction(() => { Function.Call(Hash.ON_ENTER_MP); });
         }
 
@@ -134,9 +135,6 @@ namespace RageCoop.Resources.Race
                         if (_checkpoints.Count == 0)
                             _isInRace = false;
                     }
-
-                    if (Game.IsControlJustPressed(Control.VehicleCinCam))
-                        Respawn();
                 }
             }
 
@@ -152,9 +150,17 @@ namespace RageCoop.Resources.Race
             }
         }
 
+        private void OnKeyDown(object s, System.Windows.Forms.KeyEventArgs e)
+        {
+            if (API.IsChatFocused)
+                return;
+            if (Game.IsControlJustPressed(Control.VehicleCinCam))
+                Respawn();
+        }
+
         private void Respawn()
         {
-            if (!_lastCheckPoint.HasValue)
+            if (!_isInRace || _checkpoints.Count == 0 || !_lastCheckPoint.HasValue)
                 return;
             Screen.FadeOut(1000);
             Task.Run(() =>
