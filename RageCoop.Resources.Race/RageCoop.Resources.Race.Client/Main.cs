@@ -47,7 +47,7 @@ namespace RageCoop.Resources.Race
                 var veh = Game.Player.Character.CurrentVehicle;
                 if (veh != null)
                 {
-                    if (_isInRace && veh.HeightAboveGround > 1f && !veh.IsInAir && !veh.IsInWater)
+                    if (_isInRace && veh.HeightAboveGround > 1f && !veh.IsAircraft && !veh.IsInWater && veh.Speed == 0f)
                     {
                         _cheating++;
                         if (_cheating > 5)
