@@ -50,8 +50,11 @@ namespace RageCoop.Resources.Race
                     if (_isInRace && veh.HeightAboveGround > 1f && !veh.IsAircraft && !veh.IsInWater && veh.Speed == 0f)
                     {
                         _cheating++;
-                        if (_cheating > 5)
+                        if (_cheating > 2)
+                        {
                             API.SendCustomEvent(Events.Cheating);
+                            _cheating = 0;
+                        }
                     }
                     else
                         _cheating = 0;
