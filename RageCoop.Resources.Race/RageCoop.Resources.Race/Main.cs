@@ -173,7 +173,10 @@ namespace RageCoop.Resources.Race
                 client.SendNativeCall(Hash._SET_AI_GLOBAL_PATH_NODES_TYPE, cayo);
                 client.SendCustomEvent(Events.StartCheckpointSequence, Checkpoints.ToArray());
                 if (Session.State == State.Started)
+                {
+                    client.SendCustomEvent(Events.JoinRace);
                     API.SendChatMessage($"{client.Username} joined the race");
+                }
                 else
                     player.Vehicle.Freeze(true);
             });
@@ -244,10 +247,7 @@ namespace RageCoop.Resources.Race
         public void Join(CommandContext ctx)
         {
             if (Session.State == State.Started)
-            {
                 Join(ctx.Client, Random.Next(Session.Map.SpawnPoints.Length));
-                ctx.Client.SendCustomEvent(Events.JoinRace);
-            }
         }
 
         [Command("leave")]

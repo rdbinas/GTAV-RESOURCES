@@ -23,6 +23,7 @@ namespace RageCoop.Resources.Race
         int _lasttime = Environment.TickCount;
         bool _isInRace = false;
         Vector3? _lastCheckPoint;
+        Vehicle _vehicle;
         int _cheating = 0;
 
         public override void OnStart()
@@ -47,7 +48,7 @@ namespace RageCoop.Resources.Race
                 var veh = Game.Player.Character.CurrentVehicle;
                 if (veh != null)
                 {
-                    if (_isInRace && veh.HeightAboveGround > 1f && !veh.IsAircraft && !veh.IsInWater && veh.Speed == 0f)
+                    if (_isInRace && veh.HeightAboveGround > 3f && !veh.IsAircraft && !veh.IsInWater && veh.Speed == 0f)
                     {
                         _cheating++;
                         if (_cheating > 2)
@@ -163,7 +164,7 @@ namespace RageCoop.Resources.Race
 
         private void Respawn()
         {
-            if (!_isInRace || _checkpoints.Count == 0 || !_lastCheckPoint.HasValue)
+            if (!_isInRace || _checkpoints.Count == 0 || !_lastCheckPoint.HasValue || _vehicle == null)
                 return;
             Screen.FadeOut(1000);
             Task.Run(() =>
@@ -173,13 +174,12 @@ namespace RageCoop.Resources.Race
                 {
                     var dir = _checkpoints[0] - _lastCheckPoint.Value;
                     var heading = (float)(-Math.Atan2(dir.X, dir.Y) * 180.0 / Math.PI);
-                    Vehicle veh = Game.Player.LastVehicle;
-                    veh.Position=_lastCheckPoint.Value;
-                    veh.Heading = heading;
-                    if (veh.IsOnFire)
-                        Function.Call(Hash.STOP_ENTITY_FIRE, veh);
-                    veh.Repair();
-                    Game.Player.Character.SetIntoVehicle(veh, VehicleSeat.Driver);
+                    _vehicle.Position = _lastCheckPoint.Value;
+                    _vehicle.Heading = heading;
+                    if (_vehicle.IsOnFire)
+                        Function.Call(Hash.STOP_ENTITY_FIRE, _vehicle);
+                    _vehicle.Repair();
+                    Game.Player.Character.SetIntoVehicle(_vehicle, VehicleSeat.Driver);
                     Screen.FadeIn(1000);
                 });
             });
@@ -200,8 +200,7 @@ namespace RageCoop.Resources.Race
                     });
                     Thread.Sleep(1000);
                 }
-                _raceStart = _seconds;
-                _isInRace = true;
+                StartRace();
             });
         }
 
@@ -214,10 +213,19 @@ namespace RageCoop.Resources.Race
             API.QueueAction(() => { ClearBlips(); });
         }
 
-        private void JoinRace(CustomEventReceivedArgs obj)
+        private void StartRace()
         {
+            API.QueueAction(() => {
+                _vehicle = Game.Player.Character.CurrentVehicle;
+                _lastCheckPoint = _vehicle?.Position;
+            });
             _raceStart = _seconds;
             _isInRace = true;
+        }
+
+        private void JoinRace(CustomEventReceivedArgs obj)
+        {
+            StartRace();
         }
 
         private void LeaveRace(CustomEventReceivedArgs obj)
