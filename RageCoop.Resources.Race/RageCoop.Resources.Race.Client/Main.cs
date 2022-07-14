@@ -40,15 +40,17 @@ namespace RageCoop.Resources.Race
 
         private void OnTick()
         {
+            var _player = Game.Player.Character;
+
             if (Environment.TickCount >= _lasttime + 1000)
             {
                 _seconds++;
                 _lasttime = Environment.TickCount;
 
-                var veh = Game.Player.Character.CurrentVehicle;
+                var veh = _player.CurrentVehicle;
                 if (veh != null)
                 {
-                    if (_isInRace && veh.HeightAboveGround > 3f && !veh.IsAircraft && !veh.IsInWater && veh.Speed == 0f)
+                    if (_isInRace && veh.HeightAboveGround > 3f && !veh.IsInAir && !veh.IsInWater && veh.Speed == 0f)
                     {
                         _cheating++;
                         if (_cheating > 2)
@@ -120,34 +122,31 @@ namespace RageCoop.Resources.Race
                 }
                 else
                 {
-                    Vector3 dir = Game.Player.Character.Position - _checkpoints[0];
+                    Vector3 dir = _player.Position - _checkpoints[0];
                     dir.Normalize();
                     World.DrawMarker(MarkerType.CheckeredFlagRect, _checkpoints[0] + new Vector3(0f, 0f, 2f), dir, new Vector3(0f, 0f, 0f), new Vector3(4f, 4f, 4f), Color.FromArgb(200, 87, 193, 250));
                     _nextBlip.Sprite = BlipSprite.RaceFinish;
                 }
 
-                if (_isInRace)
+                if (_isInRace && _vehicle != null && _player.IsInVehicle(_vehicle) && _player.IsInRange(_checkpoints[0], 10f))
                 {
-                    if (Game.Player.Character.IsInVehicle() && Game.Player.Character.IsInRange(_checkpoints[0], 10f))
-                    {
-                        Function.Call(Hash.REQUEST_SCRIPT_AUDIO_BANK, "HUD_MINI_GAME_SOUNDSET", true);
-                        Function.Call(Hash.PLAY_SOUND_FRONTEND, 0, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET");
-                        _lastCheckPoint = _checkpoints[0];
-                        _checkpoints.RemoveAt(0);
-                        API.SendCustomEvent(Events.CheckpointPassed, (object)_checkpoints.Count);
-                        ClearBlips();
-                        if (_checkpoints.Count == 0)
-                            _isInRace = false;
-                    }
+                    Function.Call(Hash.REQUEST_SCRIPT_AUDIO_BANK, "HUD_MINI_GAME_SOUNDSET", true);
+                    Function.Call(Hash.PLAY_SOUND_FRONTEND, 0, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET");
+                    _lastCheckPoint = _checkpoints[0];
+                    _checkpoints.RemoveAt(0);
+                    API.SendCustomEvent(Events.CheckpointPassed, (object)_checkpoints.Count);
+                    ClearBlips();
+                    if (_checkpoints.Count == 0)
+                        _isInRace = false;
                 }
             }
 
             Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleCinCam);
-            Function.Call(Hash.SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE, Game.Player.Character, 1); // don't fall from bike
-            Function.Call(Hash.SET_PED_CONFIG_FLAG, Game.Player.Character, 32, false); // don't fly through windshield
+            Function.Call(Hash.SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE, _player, 1); // don't fall from bike
+            Function.Call(Hash.SET_PED_CONFIG_FLAG, _player, 32, false); // don't fly through windshield
             Function.Call(Hash.SET_MINIMAP_HIDE_FOW, true);
-            if (Game.Player.Character.Position.DistanceTo2D(new Vector2(4700f, -5145f)) < 2000f &&
-                Function.Call<int>(Hash.GET_INTERIOR_FROM_ENTITY, Game.Player.Character) == 0)
+            if (_player.Position.DistanceTo2D(new Vector2(4700f, -5145f)) < 2000f &&
+                Function.Call<int>(Hash.GET_INTERIOR_FROM_ENTITY, _player) == 0)
             {
                 Function.Call(Hash.SET_RADAR_AS_EXTERIOR_THIS_FRAME);
                 Function.Call(Hash.SET_RADAR_AS_INTERIOR_THIS_FRAME, 0xc0a90510, 4700f, -5145f, 0, 0);
