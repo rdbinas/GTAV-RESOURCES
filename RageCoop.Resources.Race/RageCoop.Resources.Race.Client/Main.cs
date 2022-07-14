@@ -87,7 +87,7 @@ namespace RageCoop.Resources.Race
             var safe = SafezoneBounds;
             if (_isInRace)
             {
-                new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 180, (int)res.Height - safe.Y - 135), "TIME")
+                new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 180, (int)res.Height - safe.Y - 135), "Time")
                 {
                     Scale = 0.3f,
                     Color = Color.White
@@ -100,18 +100,21 @@ namespace RageCoop.Resources.Race
                     Color = Color.White
                 }.Draw();
 
-                new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 180, (int)res.Height - safe.Y - 200), "Position")
+                if (_playerCount > 1)
                 {
-                    Scale = 0.3f,
-                    Color = Color.White
-                }.Draw();
-                new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 20, (int)res.Height - safe.Y - 212), $"{_rankingPotition}/{_playerCount}")
-                {
-                    Alignment = Alignment.Right,
-                    Scale = 0.5f,
-                    Font = GTA.UI.Font.ChaletLondon,
-                    Color = Color.White
-                }.Draw();
+                    new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 180, (int)res.Height - safe.Y - 180), "Position")
+                    {
+                        Scale = 0.3f,
+                        Color = Color.White
+                    }.Draw();
+                    new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 20, (int)res.Height - safe.Y - 192), $"{_rankingPotition}/{_playerCount}")
+                    {
+                        Alignment = Alignment.Right,
+                        Scale = 0.5f,
+                        Font = GTA.UI.Font.ChaletLondon,
+                        Color = Color.White
+                    }.Draw();
+                }
             }
 
             if (_checkpoints.Count > 0)
