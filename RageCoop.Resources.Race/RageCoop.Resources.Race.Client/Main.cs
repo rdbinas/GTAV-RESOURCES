@@ -25,6 +25,8 @@ namespace RageCoop.Resources.Race
         Vector3? _lastCheckPoint;
         Vehicle _vehicle;
         int _cheating = 0;
+        int _playerCount = 0;
+        int _rankingPotition = 0;
 
         public override void OnStart()
         {
@@ -32,6 +34,7 @@ namespace RageCoop.Resources.Race
             API.RegisterCustomEventHandler(Events.StartCheckpointSequence, Checkpoints);
             API.RegisterCustomEventHandler(Events.JoinRace, JoinRace);
             API.RegisterCustomEventHandler(Events.LeaveRace, LeaveRace);
+            API.RegisterCustomEventHandler(Events.PositionRanking, (e) => {_rankingPotition=(ushort)e.Args[0];_playerCount=(ushort)e.Args[1]; });
             API.Events.OnTick+=OnTick;
             API.Events.OnKeyDown+=OnKeyDown;
             API.QueueAction(() => { Function.Call(Hash.ON_ENTER_MP); });
@@ -90,6 +93,19 @@ namespace RageCoop.Resources.Race
                     Color = Color.White
                 }.Draw();
                 new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 20, (int)res.Height - safe.Y - 147), FormatTime(_seconds - _raceStart))
+                {
+                    Alignment = Alignment.Right,
+                    Scale = 0.5f,
+                    Font = GTA.UI.Font.ChaletLondon,
+                    Color = Color.White
+                }.Draw();
+
+                new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 180, (int)res.Height - safe.Y - 200), "Position")
+                {
+                    Scale = 0.3f,
+                    Color = Color.White
+                }.Draw();
+                new LemonUI.Elements.ScaledText(new Point((int)res.Width - safe.X - 20, (int)res.Height - safe.Y - 212), $"{_rankingPotition}/{_playerCount}")
                 {
                     Alignment = Alignment.Right,
                     Scale = 0.5f,

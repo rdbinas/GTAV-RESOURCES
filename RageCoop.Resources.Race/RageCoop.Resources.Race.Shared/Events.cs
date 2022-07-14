@@ -11,5 +11,6 @@ namespace RageCoop.Resources.Race
         public static int JoinRace = CustomEvents.Hash("RageCoop.Resources.Race.JoinRace");
         public static int LeaveRace = CustomEvents.Hash("RageCoop.Resources.Race.LeaveRace");
         public static int Cheating = CustomEvents.Hash("RageCoop.Resources.Race.Cheating");
+        public static int PositionRanking = CustomEvents.Hash("RageCoop.Resources.Race.PositionRanking");
     }
 }

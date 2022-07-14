@@ -17,6 +17,8 @@ namespace RageCoop.Resources.Race
         private readonly XmlSerializer Serializer = new(typeof(Map));
         private static readonly Random Random = new();
         private static SQLiteConnection Connection;
+        private Thread RankingThread;
+        private static bool Stopping = false; 
 
         public override void OnStart()
         {
@@ -42,13 +44,36 @@ namespace RageCoop.Resources.Race
             Session.Players = new List<Player>();
             Maps = GetMaps()?.Select(map => (Map)Serializer.Deserialize(new StreamReader(map))).ToList();
             InitDB();
+            RankingThread= new Thread(() =>
+            {
+                while (!Stopping)
+                {
+                    try
+                    {
+                        if (Session.State==State.Started)
+                        {
+                            Session.Rank();
+                            foreach (var p in Session.Players)
+                            {
+                                p.Client.SendCustomEvent(Events.PositionRanking, p.Ranking,(ushort)Session.Players.Count);
+                            }
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        CurrentResource.Logger.Error(ex);
+                    }
+                    Thread.Sleep(500);
+                }
+            });
+            RankingThread.Start();
 
-            API.Logger.Info("Race resource started");
+            CurrentResource.Logger.Info("Race resource started");
         }
 
         public override void OnStop()
         {
-            API.Logger.Info($"Race resource stopped");
+            CurrentResource.Logger.Info($"Race resource stopped");
         }
 
         private void OnPlayerUpdate(object s, Client c)
