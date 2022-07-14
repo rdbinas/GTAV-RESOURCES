@@ -73,6 +73,8 @@ namespace RageCoop.Resources.Race
 
         public override void OnStop()
         {
+            Stopping=true;
+            RankingThread.Join();
             CurrentResource.Logger.Info($"Race resource stopped");
         }
 
