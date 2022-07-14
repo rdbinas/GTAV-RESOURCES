@@ -99,6 +99,7 @@ namespace RageCoop.Resources.Race
                     Font = GTA.UI.Font.ChaletLondon,
                     Color = Color.White
                 }.Draw();
+                new Sprite("timerbars", "all_black_bg", new Size(150, 26), new Point((int)Screen.Width - safe.X - 145, (int)Screen.Height - safe.Y - 92), Color.FromArgb(200, 255, 255, 255)).Draw();
 
                 if (_playerCount > 1)
                 {
@@ -114,6 +115,7 @@ namespace RageCoop.Resources.Race
                         Font = GTA.UI.Font.ChaletLondon,
                         Color = Color.White
                     }.Draw();
+                    new Sprite("timerbars", "all_black_bg", new Size(150, 26), new Point((int)Screen.Width - safe.X - 145, (int)Screen.Height - safe.Y - 122), Color.FromArgb(200, 255, 255, 255)).Draw();
                 }
             }
 
