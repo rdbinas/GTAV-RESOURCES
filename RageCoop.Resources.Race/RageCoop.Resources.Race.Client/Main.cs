@@ -231,6 +231,19 @@ namespace RageCoop.Resources.Race
             foreach (var item in obj.Args)
                 _checkpoints.Add((Vector3)item);
             API.QueueAction(() => { ClearBlips(); });
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            API.QueueAction(() =>
+            {
+                if (sw.ElapsedMilliseconds<10000)
+                {
+                    Screen.ShowHelpTextThisFrame("Press ~INPUT_VEH_CIN_CAM~ to reset your vehicle");
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            });
         }
 
         private void StartRace()
