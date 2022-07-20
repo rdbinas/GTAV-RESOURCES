@@ -2,19 +2,19 @@
 using System.Collections.Generic;
 using RageCoop.Client.Scripting;
 using System.Xml;
+using System.IO;
 using Newtonsoft.Json;
 
 namespace RageCoop.Resources.HandlingEnforcer.Client
 {
     public class Main : ClientScript
     {
-        XmlDocument Document;
-        Dictionary<string, HandlingData> HandlingDatamn = new Dictionary<string, HandlingData>();
+        Dictionary<int, HandlingData> HandlingDatamn = new Dictionary<int, HandlingData>();
         Dictionary<GTA.HandlingData, HandlingData> ModifiedHandlings = new Dictionary<GTA.HandlingData, HandlingData>();
         public override void OnStart()
         {
-            API.RequestSharedFile("RageCoop.Resources.HandlingEnforcer.Meta", Load);
-            
+            API.RequestSharedFile("handling.json", Load);
+            API.QueueAction(()=>ExportAll());
         }
         void Load(string s)
         {
@@ -24,38 +24,64 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
                 Logger.Info("null!");
             }
             Logger.Info("Reading handling data from "+s);
-            Document = new XmlDocument();
-            Document.Load(s);
-            foreach (XmlNode node in Document.DocumentElement.ChildNodes[0].ChildNodes)
+
+            foreach (var l in File.ReadAllLines(s))
             {
-                var data = new HandlingData(node);
-                HandlingDatamn.Add(data.Name.ToUpper(), data);
+                var data = JsonConvert.DeserializeObject<HandlingData>(l);
+                if (!HandlingDatamn.ContainsKey(data.Hash))
+                {
+                    HandlingDatamn.Add(data.Hash, data);
+                    Logger.Trace("loaded data:"+data.Hash);
+                }
             }
             API.Events.OnVehicleSpawned+=ApplyHandling;
+            API.QueueAction(() =>
+            {
+                foreach (var v in GTA.World.GetAllVehicles())
+                {
+                    ApplyHandling(v);
+                }
+            });
         }
         private void ApplyHandling(object sender, RageCoop.Client.SyncedVehicle e)
         {
-            if(e == null||e.MainVehicle==null) { return; }
-            // Logger.Debug("Vehicle spawnd: "+e.MainVehicle.DisplayName.ToUpper());
-            
-            if (HandlingDatamn.TryGetValue(e.MainVehicle.DisplayName.ToUpper(),out var data))
+            ApplyHandling(e?.MainVehicle);
+        }
+        void ApplyHandling(GTA.Vehicle v)
+        {
+            lock (ModifiedHandlings)
             {
-                var h = e.MainVehicle.HandlingData;
-                if (!ModifiedHandlings.ContainsKey(h))
+                if (v==null) { return; }
+                // Logger.Debug("Vehicle spawnd: "+e.MainVehicle.DisplayName.ToUpper());
+                if (HandlingDatamn.TryGetValue(v.Model.Hash, out var data))
                 {
-                    Logger.Debug("Applying handling data to: "+e.MainVehicle.DisplayName);
-                    
-                    // Copy and store unmodified handling data
-                    ModifiedHandlings.Add(h,new HandlingData(h));
+                    var h = v.HandlingData;
+                    if (!ModifiedHandlings.ContainsKey(h))
+                    {
+                        Logger.Debug("Applying handling data to: "+v.DisplayName+" hash:"+data.Hash);
 
-                    data.ApplyTo(h);
+                        // Copy and store unmodified handling data
+                        ModifiedHandlings.Add(h, new HandlingData(h,v.Model.Hash));
+                        Logger.Trace(JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented));
+                        Logger.Trace(JsonConvert.SerializeObject(new HandlingData(h, v.Model.Hash), Newtonsoft.Json.Formatting.Indented));
+
+                        data.ApplyTo(h);
+                    }
+
                 }
-                // Logger.Trace(JsonConvert.SerializeObject(data,Newtonsoft.Json.Formatting.Indented));
-                // Logger.Trace(JsonConvert.SerializeObject(new HandlingData(e.MainVehicle), Newtonsoft.Json.Formatting.Indented));
 
             }
         }
-
+        public static void ExportAll(string path="handling.json")
+        {
+            using(var w = new StreamWriter(path))
+            {
+                foreach(var m in GTA.Vehicle.GetAllModels())
+                {
+                    w.WriteLine(JsonConvert.SerializeObject(new HandlingData(GTA.HandlingData.GetByVehicleModel(m), ((GTA.Model)m).Hash), Newtonsoft.Json.Formatting.None));
+                }
+            }
+        }
         public override void OnStop()
         {
             // Restore modified handling data

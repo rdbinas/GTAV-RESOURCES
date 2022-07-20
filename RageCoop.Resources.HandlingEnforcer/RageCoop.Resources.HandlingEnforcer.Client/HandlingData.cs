@@ -4,14 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using GTA.Math;
 using GTA;
 using Newtonsoft.Json;
 
 namespace RageCoop.Resources.HandlingEnforcer.Client
 {
+    internal struct Vector3
+    {
+        public float X, Y, Z;
+        public static implicit operator Vector3(GTA.Math.Vector3 v) =>new Vector3() { X=v.X,Y=v.Y,Z=v.Z};
+        public static explicit operator GTA.Math.Vector3(Vector3 v) => new GTA.Math.Vector3() { X=v.X, Y=v.Y, Z=v.Z };
+
+    }
     internal class HandlingData
     {
+        public HandlingData()
+        {
+
+        }
         public HandlingData(XmlNode node)
         {
             foreach(XmlNode n in node.ChildNodes)
@@ -147,9 +157,12 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
             TractionBiasFront*=2;
             SuspensionCompressionDamping/=10;
             SuspensionReboundDamping/=10;
+            SteeringLock/=57.29577f;
+            TractionLossMultiplier/=100;
         }
-        public HandlingData(GTA.HandlingData h)
+        public HandlingData(GTA.HandlingData h,int hash)
         {
+            Hash=hash;
             AntiRollBarBiasFront = h.AntiRollBarBiasFront;
             AntiRollBarForce = h.AntiRollBarForce;
             BrakeForce = h.BrakeForce;
@@ -205,7 +218,7 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
             h.AntiRollBarForce = AntiRollBarForce;
             h.BrakeForce = BrakeForce;
             h.CamberStiffness=CamberStiffness;
-            h.CenterOfMassOffset=CenterOfMassOffset;
+            h.CenterOfMassOffset=(GTA.Math.Vector3)CenterOfMassOffset;
             h.ClutchChangeRateScaleDownShift = ClutchChangeRateScaleDownShift;
             h.ClutchChangeRateScaleUpShift = ClutchChangeRateScaleUpShift;
             h.CollisionDamageMultiplier = CollisionDamageMultiplier;
@@ -213,7 +226,7 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
             h.DriveInertia=DriveInertia;
             h.EngineDamageMultiplier = EngineDamageMultiplier;
             h.HandBrakeForce = HandBrakeForce;
-            h.InertiaMultiplier=InertiaMultiplier;
+            h.InertiaMultiplier=(GTA.Math.Vector3)InertiaMultiplier;
             h.InitialDriveForce=InitialDriveForce;
             h.InitialDriveGears=InitialDriveGears;
             h.Mass=Mass;
@@ -226,8 +239,7 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
             h.SeatOffsetDistanceX=SeatOffsetDistanceX;
             h.SeatOffsetDistanceY=SeatOffsetDistanceY;
             h.SeatOffsetDistanceZ=SeatOffsetDistanceZ;
-            // doesn't match
-            // h.SteeringLock=SteeringLock;
+            h.SteeringLock=SteeringLock;
             h.SuspensionBiasFront=SuspensionBiasFront;
             h.SuspensionCompressionDamping=SuspensionCompressionDamping;
             h.SuspensionForce=SuspensionForce;
@@ -238,54 +250,52 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
             h.TractionBiasFront=TractionBiasFront;
             h.TractionCurveMax=TractionCurveMax;
             h.TractionCurveMin=TractionCurveMin;
-            // doesn't match
-            // h.TractionLossMultiplier=TractionLossMultiplier;
+            h.TractionLossMultiplier=TractionLossMultiplier;
             h.TractionSpringDeltaMax=TractionSpringDeltaMax;
             h.WeaponDamageMultiplier=WeaponDamageMultiplier;
 
 
         }
-        public readonly string Name;
-        public readonly float AntiRollBarBiasFront;
-        public readonly float AntiRollBarForce;
-        public readonly float BrakeForce;
-        public readonly float CamberStiffness;
-        [JsonIgnore]
-        public readonly Vector3 CenterOfMassOffset;
-        public readonly float ClutchChangeRateScaleDownShift;
-        public readonly float ClutchChangeRateScaleUpShift;
-        public readonly float CollisionDamageMultiplier;
-        public readonly float DeformationDamageMultiplier;
-        public readonly float DriveInertia;
-        public readonly float EngineDamageMultiplier;
-        public readonly float HandBrakeForce;
-        [JsonIgnore]
-        public readonly Vector3 InertiaMultiplier;
-        public readonly float InitialDriveForce;
-        public readonly int InitialDriveGears;
-        public readonly float Mass;
-        public readonly int MonetaryValue;
-        public readonly float OilVolume;
-        public readonly float PercentSubmerged;
-        public readonly float PetrolTankVolume;
-        public readonly float RollCenterHeightFront;
-        public readonly float RollCenterHeightRear;
-        public readonly float SeatOffsetDistanceX;
-        public readonly float SeatOffsetDistanceY;
-        public readonly float SeatOffsetDistanceZ;
-        public readonly float SteeringLock;
-        public readonly float SuspensionBiasFront;
-        public readonly float SuspensionCompressionDamping;
-        public readonly float SuspensionForce;
-        public readonly float SuspensionLowerLimit;
-        public readonly float SuspensionRaise;
-        public readonly float SuspensionReboundDamping;
-        public readonly float SuspensionUpperLimit;
-        public readonly float TractionBiasFront;
-        public readonly float TractionCurveMax;
-        public readonly float TractionCurveMin;
-        public readonly float TractionLossMultiplier;
-        public readonly float TractionSpringDeltaMax;
-        public readonly float WeaponDamageMultiplier;
+        public string Name;
+        public int Hash;
+        public float AntiRollBarBiasFront;
+        public float AntiRollBarForce;
+        public float BrakeForce;
+        public float CamberStiffness;
+        public Vector3 CenterOfMassOffset;
+        public float ClutchChangeRateScaleDownShift;
+        public float ClutchChangeRateScaleUpShift;
+        public float CollisionDamageMultiplier;
+        public float DeformationDamageMultiplier;
+        public float DriveInertia;
+        public float EngineDamageMultiplier;
+        public float HandBrakeForce;
+        public Vector3 InertiaMultiplier;
+        public float InitialDriveForce;
+        public int InitialDriveGears;
+        public float Mass;
+        public int MonetaryValue;
+        public float OilVolume;
+        public float PercentSubmerged;
+        public float PetrolTankVolume;
+        public float RollCenterHeightFront;
+        public float RollCenterHeightRear;
+        public float SeatOffsetDistanceX;
+        public float SeatOffsetDistanceY;
+        public float SeatOffsetDistanceZ;
+        public float SteeringLock;
+        public float SuspensionBiasFront;
+        public float SuspensionCompressionDamping;
+        public float SuspensionForce;
+        public float SuspensionLowerLimit;
+        public float SuspensionRaise;
+        public float SuspensionReboundDamping;
+        public float SuspensionUpperLimit;
+        public float TractionBiasFront;
+        public float TractionCurveMax;
+        public float TractionCurveMin;
+        public float TractionLossMultiplier;
+        public float TractionSpringDeltaMax;
+        public float WeaponDamageMultiplier;
     }
 }

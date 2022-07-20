@@ -9,7 +9,7 @@ namespace RageCoop.Resources.HandlingEnforcer
     {
         public override void OnStart()
         {
-            API.RegisterSharedFile("RageCoop.Resources.HandlingEnforcer.Meta", Path.Combine(CurrentResource.DataFolder, "handling.meta"));
+            API.RegisterSharedFile("handling.json", Path.Combine(CurrentResource.DataFolder, "handling.json"));
         }
 
         public override void OnStop()
