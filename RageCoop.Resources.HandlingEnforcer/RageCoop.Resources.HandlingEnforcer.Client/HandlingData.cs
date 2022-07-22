@@ -13,7 +13,7 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
     {
         public float X, Y, Z;
         public static implicit operator Vector3(GTA.Math.Vector3 v) =>new Vector3() { X=v.X,Y=v.Y,Z=v.Z};
-        public static explicit operator GTA.Math.Vector3(Vector3 v) => new GTA.Math.Vector3() { X=v.X, Y=v.Y, Z=v.Z };
+        public static implicit operator GTA.Math.Vector3(Vector3 v) => new GTA.Math.Vector3() { X=v.X, Y=v.Y, Z=v.Z };
 
     }
     internal class HandlingData
@@ -218,7 +218,7 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
             h.AntiRollBarForce = AntiRollBarForce;
             h.BrakeForce = BrakeForce;
             h.CamberStiffness=CamberStiffness;
-            h.CenterOfMassOffset=(GTA.Math.Vector3)CenterOfMassOffset;
+            h.CenterOfMassOffset=CenterOfMassOffset;
             h.ClutchChangeRateScaleDownShift = ClutchChangeRateScaleDownShift;
             h.ClutchChangeRateScaleUpShift = ClutchChangeRateScaleUpShift;
             h.CollisionDamageMultiplier = CollisionDamageMultiplier;
@@ -226,7 +226,7 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
             h.DriveInertia=DriveInertia;
             h.EngineDamageMultiplier = EngineDamageMultiplier;
             h.HandBrakeForce = HandBrakeForce;
-            h.InertiaMultiplier=(GTA.Math.Vector3)InertiaMultiplier;
+            h.InertiaMultiplier=InertiaMultiplier;
             h.InitialDriveForce=InitialDriveForce;
             h.InitialDriveGears=InitialDriveGears;
             h.Mass=Mass;

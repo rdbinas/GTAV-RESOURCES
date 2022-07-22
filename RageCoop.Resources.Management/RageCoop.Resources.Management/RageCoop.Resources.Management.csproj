@@ -1,13 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+	  <TargetFramework>net6.0</TargetFramework>
+	  <ImplicitUsings>enable</ImplicitUsings>
+	  <OutDir>..\..\..\RageCoop-V\bin\Debug\Server\Resources\Server\RageCoop.Resources.Management</OutDir>
 	  <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.116" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,9 +19,6 @@
 	  </Reference>
 	  <Reference Include="RageCoop.Server">
 		  <HintPath>..\..\..\RageCoop-V\bin\Debug\Server\RageCoop.Server.dll</HintPath>
-	  </Reference>
-	  <Reference Include="ScriptHookVDotNet3">
-		  <HintPath>..\..\..\RageCoop-V\libs\ScriptHookVDotNet3.dll</HintPath>
 	  </Reference>
   </ItemGroup>
 
