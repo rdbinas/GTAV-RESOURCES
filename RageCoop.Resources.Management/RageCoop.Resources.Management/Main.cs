@@ -9,10 +9,10 @@ using Newtonsoft.Json;
 
 namespace RageCoop.Resources.Management
 {
-    public class Main :ServerScript
+    public class Main : ServerScript
     {
         public ManagementStore ManagementStore { get; set; }
-        private object _writeLock=new object();
+        private object _writeLock = new object();
         public override void OnStart()
         {
             API.RegisterCommands(this);
@@ -33,7 +33,8 @@ namespace RageCoop.Resources.Management
                         e.Deny("Authentication failed!");
                     }
                 }
-                else if(!ManagementStore.Config.AllowGuest){
+                else if (!ManagementStore.Config.AllowGuest)
+                {
                     e.Deny("You're not authorized");
                 }
             };
@@ -66,7 +67,7 @@ namespace RageCoop.Resources.Management
                     var c = API.GetClientByUsername(username);
                     if (c!=null)
                     {
-                        ManagementStore.Ban(c.EndPoint.Address.ToString(),username);
+                        ManagementStore.Ban(c.EndPoint.Address.ToString(), username);
                         c.Kick(reason);
                         API.SendChatMessage($"{username} was banned:"+reason);
                     }
@@ -91,7 +92,7 @@ namespace RageCoop.Resources.Management
         public void Unban(CommandContext ctx)
         {
             if (ctx.Args.Length<1) { return; }
-            var username=ctx.Args[0];
+            var name = ctx.Args[0];
             if (!HasPermission(ctx.Client, PermissionFlags.Ban))
             {
                 ctx.Client?.SendChatMessage("You don't have permission to perform this operation");
@@ -101,8 +102,8 @@ namespace RageCoop.Resources.Management
             {
                 try
                 {
-                    ManagementStore.Unban(API.GetClientByUsername(username).EndPoint.Address.ToString());
-                    API.SendChatMessage($"{username} was unbanned.");
+                    ManagementStore.Unban(name);
+                    API.SendChatMessage($"{name} was unbanned.");
                 }
                 catch (Exception ex)
                 {
@@ -114,9 +115,9 @@ namespace RageCoop.Resources.Management
         [Command("register")]
         public void Register(CommandContext ctx)
         {
-            if(ctx.Args.Length<2) { return;}
-            var name=ctx.Args[0];
-            var pass =ctx.Args[1];
+            if (ctx.Args.Length<2) { return; }
+            var name = ctx.Args[0];
+            var pass = ctx.Args[1];
             string role;
             if (ctx.Client==null)
             {
@@ -138,16 +139,16 @@ namespace RageCoop.Resources.Management
                 role=ManagementStore.GetMember(ctx.Client.Username)?.Role;
             }
             if (role==null || role.ToLower()=="guest") { return; }
-            ManagementStore.AddMember(name, pass, role);
+            ManagementStore.AddMember(name, pass.GetSHA256Hash().ToHexString(), role);
         }
         private Role GetRole(string username)
         {
-            var r=ManagementStore.GetMember(username)?.Role;
+            var r = ManagementStore.GetMember(username)?.Role;
             if (r==null && ManagementStore.Config.AllowGuest)
             {
                 r="Guest";
             }
-            if(r!=null && ManagementStore.Config.Roles.TryGetValue(r, out Role role))
+            if (r!=null && ManagementStore.Config.Roles.TryGetValue(r, out Role role))
             {
                 return role;
             }
@@ -222,14 +223,14 @@ namespace RageCoop.Resources.Management
                 e.Sender.SendChatMessage("You do not have permission to execute this command");
             }
         }
-        private bool HasPermission(Client sender,PermissionFlags permission)
+        private bool HasPermission(Client sender, PermissionFlags permission)
         {
             if (sender==null) { return true; };
             Member m;
             Role r;
-            if((m=ManagementStore.GetMember(sender.Username))!=null)
+            if ((m=ManagementStore.GetMember(sender.Username))!=null)
             {
-                if(ManagementStore.Config.Roles.TryGetValue(m.Role.ToString(), out r))
+                if (ManagementStore.Config.Roles.TryGetValue(m.Role.ToString(), out r))
                 {
                     return r.Permissions.HasPermissionFlag(permission);
                 }
