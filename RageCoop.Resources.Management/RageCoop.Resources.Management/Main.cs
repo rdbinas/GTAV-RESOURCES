@@ -40,14 +40,6 @@ namespace RageCoop.Resources.Management
             };
             API.Events.OnCommandReceived+=FilterCommand;
         }
-        private void Mute(string username)
-        {
-
-        }
-        private void UnMute(string username)
-        {
-
-        }
 
         [Command("ban")]
         public void Ban(CommandContext ctx)
@@ -116,30 +108,36 @@ namespace RageCoop.Resources.Management
         public void Register(CommandContext ctx)
         {
             if (ctx.Args.Length<2) { return; }
+            else if (ctx.Client !=null && !HasPermission(ctx.Client, PermissionFlags.Register))
+            {
+                return;
+            }
             var name = ctx.Args[0];
             var pass = ctx.Args[1];
-            string role;
-            if (ctx.Client==null)
+            if (ManagementStore.Config.DefaultRole==null || ManagementStore.Config.DefaultRole.ToLower()=="guest") { return; }
+            ManagementStore.AddMember(name, pass.GetSHA256Hash().ToHexString(), ManagementStore.Config.DefaultRole);
+        }
+
+        [Command("unregister")]
+        public void Unregister(CommandContext ctx)
+        {
+            string name;
+            if (ctx.Args.Length==0)
             {
-                if (ctx.Args.Length>=3)
-                {
-                    role=ctx.Args[2];
-                }
-                else
-                {
-                    role="Admin";
-                }
+                name=ctx.Client.Username;
             }
-            else if (ctx.Args.Length>=3 && GetRole(ctx.Client.Username)?.Permissions==PermissionFlags.All)
+            else if (HasPermission(ctx.Client, PermissionFlags.All))
             {
-                role=ctx.Args[2];
+                name= ctx.Args[0];
             }
             else
             {
-                role=ManagementStore.GetMember(ctx.Client.Username)?.Role;
+                return ;
             }
-            if (role==null || role.ToLower()=="guest") { return; }
-            ManagementStore.AddMember(name, pass.GetSHA256Hash().ToHexString(), role);
+            if (ManagementStore.RemoveMember(name))
+            {
+                ctx.Client?.SendChatMessage("Succesfully removed member: "+ name);
+            }
         }
         private Role GetRole(string username)
         {

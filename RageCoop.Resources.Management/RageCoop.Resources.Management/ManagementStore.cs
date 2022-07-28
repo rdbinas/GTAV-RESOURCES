@@ -104,6 +104,12 @@ namespace RageCoop.Resources.Management
 				return false;
 			}
 		}
+		public bool RemoveMember(string username)
+        {
+			SQLiteCommand query;
+			query = new SQLiteCommand($"DELETE FROM Members WHERE Username = \"{username.ToLower()}\";", _con);
+			return query.ExecuteNonQuery()!=0;
+		}
 		public void Ban(string ip, string username, string reason = "Unspecified")
 		{
 			var query = new SQLiteCommand(
@@ -135,6 +141,8 @@ namespace RageCoop.Resources.Management
 		public string PassHash { get; set; }
 		public string Role { get; set; }
 	}
+
+	[Flags]
 	public enum PermissionFlags : ulong
 	{
 		None = 0,
@@ -147,15 +155,20 @@ namespace RageCoop.Resources.Management
 	public class Config
 	{
 		public bool AllowGuest = true;
+		/// <summary>
+		/// The role to assign to a newly registered user
+		/// </summary>
+		public string DefaultRole = "User";
 		public readonly Dictionary<string, Role> Roles = new()
 		{
 			{ "Admin", new Role() { Permissions=PermissionFlags.All, CommandFilteringMode=1 } },
 			{ "User", new Role() { Permissions=PermissionFlags.Register, CommandFilteringMode=1 } },
-			{ "Guest", new Role() { Permissions=PermissionFlags.None, CommandFilteringMode=0 } }
+			{ "Guest", new Role() { Permissions=PermissionFlags.Register, CommandFilteringMode=0 } }
 		};
 	}
 	public class Role
 	{
+		[JsonConverter(typeof(PermissionConverter))]
 		public PermissionFlags Permissions { get; set; } = PermissionFlags.None;
 		/// <summary>
 		/// 0:whitelist (block all by default), 1:blacklist (allow all by default).
@@ -165,5 +178,26 @@ namespace RageCoop.Resources.Management
 		public HashSet<string> BlackListedCommands { get; set; } = new HashSet<string>();
 
 	}
+	public class PermissionConverter : JsonConverter
+	{
+		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		{
+			writer.WriteValue(((PermissionFlags)value).ToString());
+		}
 
+		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		{
+			return Enum.Parse(typeof(PermissionFlags), reader.ReadAsString());
+		}
+
+		public override bool CanRead
+		{
+			get { return true; }
+		}
+
+		public override bool CanConvert(Type objectType)
+		{
+			return objectType == typeof(PermissionFlags);
+		}
+	}
 }
