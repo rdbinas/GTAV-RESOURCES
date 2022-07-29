@@ -203,12 +203,12 @@ namespace RageCoop.Resources.Management
 
             Member m;
             Role r;
-            if (e.Sender==null)
+            if (e.Client==null)
             {
                 // Sent by server
                 return;
             }
-            if ((m=ManagementStore.GetMember(e.Sender.Username))!=null)
+            if ((m=ManagementStore.GetMember(e.Client.Username))!=null)
             {
                 if (ManagementStore.Config.Roles.TryGetValue(m.Role, out r))
                 {
@@ -239,7 +239,7 @@ namespace RageCoop.Resources.Management
             }
             if (e.Cancel)
             {
-                e.Sender.SendChatMessage("You do not have permission to execute this command");
+                e.Client.SendChatMessage("You do not have permission to execute this command");
             }
         }
         private bool HasPermission(Client sender, PermissionFlags permission)

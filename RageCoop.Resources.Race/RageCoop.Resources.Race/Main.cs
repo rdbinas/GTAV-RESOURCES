@@ -151,7 +151,7 @@ namespace RageCoop.Resources.Race
             {
                 Player player;
                 lock (Session.Players)
-                    player = Session.Players.FirstOrDefault(x => x.Client == obj.Sender);
+                    player = Session.Players.FirstOrDefault(x => x.Client == obj.Client);
                 if (player != null)
                 {
                     player.CheckpointsPassed = Session.Map.Checkpoints.Length - (int)obj.Args[0];
@@ -238,7 +238,7 @@ namespace RageCoop.Resources.Race
 
         public void Cheating(CustomEventReceivedArgs obj)
         {
-            API.SendChatMessage($"{obj.Sender.Username} is cheating");
+            API.SendChatMessage($"{obj.Client.Username} is cheating");
             //obj.Sender.Kick("Cheating");
         }
 
