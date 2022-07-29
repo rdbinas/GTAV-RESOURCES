@@ -10,7 +10,7 @@ namespace RageCoop.Resources.Discord
 {
     public class Main : ServerScript
     {
-        private DiscordBot DiscordBot;
+        public DiscordBot DiscordBot;
 
         public override void OnStart()
         {
