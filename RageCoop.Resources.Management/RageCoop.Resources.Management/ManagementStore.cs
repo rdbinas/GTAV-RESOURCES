@@ -104,6 +104,13 @@ namespace RageCoop.Resources.Management
 				return false;
 			}
 		}
+		public bool SetRole(string username, string role)
+        {
+			username=username.ToLower();
+			SQLiteCommand query;
+			query = new SQLiteCommand($"UPDATE Members SET Role=\"{role}\" WHERE Username = \"{username.ToLower()}\";", _con);
+			return query.ExecuteNonQuery()!=0;
+		}
 		public bool RemoveMember(string username)
         {
 			SQLiteCommand query;

@@ -167,6 +167,24 @@ namespace RageCoop.Resources.Management
                 ctx.Client?.SendChatMessage("You don't have permission to perform this operation");
             }
         }
+
+        [Command("setrole")]
+        public void SetRole(CommandContext ctx)
+        {
+            if(ctx!=null && !HasPermission(ctx.Client, PermissionFlags.All))
+            {
+                ctx.Client?.SendChatMessage("You don't have permission to perform this operation");
+                return;
+            }
+            if(ctx.Args.Length<2) { return;}
+            var name = ctx.Args[0];
+            var role=ctx.Args[1];
+            if (ManagementStore.Config.Roles.ContainsKey(role) && ManagementStore.SetRole(name, role))
+            {
+                ctx.Client?.SendChatMessage("Successfully updated role for member: "+name);
+            }
+
+        }
         private Role GetRole(string username)
         {
             var r = ManagementStore.GetMember(username)?.Role;
