@@ -115,7 +115,10 @@ namespace RageCoop.Resources.Management
             var name = ctx.Args[0];
             var pass = ctx.Args[1];
             if (ManagementStore.Config.DefaultRole==null || ManagementStore.Config.DefaultRole.ToLower()=="guest") { return; }
-            ManagementStore.AddMember(name, pass.GetSHA256Hash().ToHexString(), ManagementStore.Config.DefaultRole);
+            if (ManagementStore.AddMember(name, pass.GetSHA256Hash().ToHexString(), ManagementStore.Config.DefaultRole))
+            {
+                ctx.Client?.SendChatMessage("Successfully registered user: "+name);
+            }
         }
 
         [Command("unregister")]
@@ -138,19 +141,6 @@ namespace RageCoop.Resources.Management
             {
                 ctx.Client?.SendChatMessage("Succesfully removed member: "+ name);
             }
-        }
-        private Role GetRole(string username)
-        {
-            var r = ManagementStore.GetMember(username)?.Role;
-            if (r==null && ManagementStore.Config.AllowGuest)
-            {
-                r="Guest";
-            }
-            if (r!=null && ManagementStore.Config.Roles.TryGetValue(r, out Role role))
-            {
-                return role;
-            }
-            return null;
         }
 
         [Command("kick")]
@@ -176,6 +166,19 @@ namespace RageCoop.Resources.Management
             {
                 ctx.Client?.SendChatMessage("You don't have permission to perform this operation");
             }
+        }
+        private Role GetRole(string username)
+        {
+            var r = ManagementStore.GetMember(username)?.Role;
+            if (r==null && ManagementStore.Config.AllowGuest)
+            {
+                r="Guest";
+            }
+            if (r!=null && ManagementStore.Config.Roles.TryGetValue(r, out Role role))
+            {
+                return role;
+            }
+            return null;
         }
         private void FilterCommand(object sender, OnCommandEventArgs e)
         {

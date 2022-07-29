@@ -163,7 +163,7 @@ namespace RageCoop.Resources.Management
 		{
 			{ "Admin", new Role() { Permissions=PermissionFlags.All, CommandFilteringMode=1 } },
 			{ "User", new Role() { Permissions=PermissionFlags.Register, CommandFilteringMode=1 } },
-			{ "Guest", new Role() { Permissions=PermissionFlags.Register, CommandFilteringMode=0 } }
+			{ "Guest", new Role() { Permissions=PermissionFlags.Register, CommandFilteringMode=0, WhiteListedCommands=new(){"register"} } }
 		};
 	}
 	public class Role
