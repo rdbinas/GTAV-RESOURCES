@@ -121,7 +121,7 @@ namespace RageCoop.Resources.Discord
                 string usr = Regex.Replace(message.Author.Username, @"\p{Cs}", "");
                 string msg = Regex.Replace(message.Content, @"\p{Cs}", "");
                 if (msg.Length > 0)
-                    API.SendChatMessage(msg, null, usr + " [Discord]");
+                    API.SendChatMessage(msg, null, usr + " [Discord]",false);
             }
         }
 
