@@ -25,7 +25,8 @@ namespace RageCoop.Resources.Discord
             };
             API.Events.OnChatMessage += (s, m) =>
             {
-                DiscordBot.SendToDiscord(m.Message, m.Sender.Username).GetAwaiter().GetResult();
+                if (m.Sender != null)
+                    DiscordBot.SendToDiscord(m.Message, m.Sender.Username).GetAwaiter().GetResult();
             };
             CurrentResource.Logger.Info("Discord resource started");
         }
