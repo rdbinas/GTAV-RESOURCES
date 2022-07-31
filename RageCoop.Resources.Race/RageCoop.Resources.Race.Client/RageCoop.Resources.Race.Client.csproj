@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
 	  <OutDir>..\..\..\RageCoop-V\bin\Debug\Server\Resources\Client\RageCoop.Resources.Race</OutDir>
+	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 
   </PropertyGroup>
 

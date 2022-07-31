@@ -194,11 +194,21 @@ namespace RageCoop.Resources.Race
                 {
                     var dir = _checkpoints[0] - _lastCheckPoint.Value;
                     var heading = (float)(-Math.Atan2(dir.X, dir.Y) * 180.0 / Math.PI);
-                    _vehicle.Position = _lastCheckPoint.Value;
-                    _vehicle.Heading = heading;
+                    
+                    // Stromberg will have some issues event after repair, so just spawn a new vehicle
+                    var model = _vehicle.Model;
+                    byte primaryColor = 0;
+                    byte secondaryColor = 0;
+                    unsafe
+                    {
+                        Function.Call<byte>(Hash.GET_VEHICLE_COLOURS, _vehicle, &primaryColor, &secondaryColor);
+                    }
+                    _vehicle.Delete();
+                    _vehicle=World.CreateVehicle(model, _lastCheckPoint.Value, heading);
+                    Function.Call(Hash.SET_VEHICLE_COLOURS,_vehicle,primaryColor, secondaryColor);
                     if (_vehicle.IsOnFire)
                         Function.Call(Hash.STOP_ENTITY_FIRE, _vehicle);
-                    _vehicle.Repair();
+                    _vehicle.PlaceOnGround();
                     Game.Player.Character.SetIntoVehicle(_vehicle, VehicleSeat.Driver);
                     Screen.FadeIn(1000);
                 });
@@ -226,15 +236,29 @@ namespace RageCoop.Resources.Race
 
         private void Checkpoints(CustomEventReceivedArgs obj)
         {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            API.QueueAction(() => {
+                _vehicle=Game.Player.Character.CurrentVehicle;
+                if (_vehicle==null && sw.ElapsedMilliseconds<10000)
+                {
+                    return false;
+                }
+                else
+                {
+                    _vehicle.PlaceOnGround();
+                    sw.Stop();
+                    return true;
+                }
+            });
             _checkpoints.Clear();
             _lastCheckPoint=null;
             foreach (var item in obj.Args)
                 _checkpoints.Add((Vector3)item);
             API.QueueAction(() => { ClearBlips(); });
-            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var sw2 = System.Diagnostics.Stopwatch.StartNew();
             API.QueueAction(() =>
             {
-                if (sw.ElapsedMilliseconds<10000)
+                if (sw2.ElapsedMilliseconds<10000)
                 {
                     Screen.ShowHelpTextThisFrame("Press ~INPUT_VEH_CIN_CAM~ to reset your vehicle");
                     return false;
