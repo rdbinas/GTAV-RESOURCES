@@ -88,7 +88,7 @@ namespace RageCoop.Resources.Race
                 lock (Session.Players)
                     foreach (var player in Session.Players)
                         player.CheckpointsPassed = 0;
-                API.SendChatMessage("Starting in 15 seconds, use /vote to vote for a map");
+                API.SendChatMessage("Starting in 15 seconds, use /vote to vote for a map", null, "Server", false);
             }
 
             if (Session.State == State.Preparing && DateTime.Now > Session.NextEvent)
@@ -125,8 +125,8 @@ namespace RageCoop.Resources.Race
                     spawnPoint++;
                 }
 
-                API.SendChatMessage("The race is about to start, get ready");
-                // API.SendChatMessage("Press R to respawn at last checkpoint");
+                API.SendChatMessage("The race is about to start, get ready", null, "Server", false);
+
                 var countdown = new Thread((ThreadStart)delegate
                 {
                     Thread.Sleep(10000);
