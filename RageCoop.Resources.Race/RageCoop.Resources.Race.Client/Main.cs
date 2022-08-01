@@ -206,8 +206,6 @@ namespace RageCoop.Resources.Race
                     _vehicle.Delete();
                     _vehicle=World.CreateVehicle(model, _lastCheckPoint.Value, heading);
                     Function.Call(Hash.SET_VEHICLE_COLOURS,_vehicle,primaryColor, secondaryColor);
-                    if (_vehicle.IsOnFire)
-                        Function.Call(Hash.STOP_ENTITY_FIRE, _vehicle);
                     _vehicle.PlaceOnGround();
                     Game.Player.Character.SetIntoVehicle(_vehicle, VehicleSeat.Driver);
                     Screen.FadeIn(1000);
@@ -272,16 +270,14 @@ namespace RageCoop.Resources.Race
 
         private void StartRace()
         {
-            API.QueueAction(() => {
-                _vehicle = Game.Player.Character.CurrentVehicle;
-                _lastCheckPoint = _vehicle?.Position;
-            });
+            API.QueueAction(() => { _lastCheckPoint = _vehicle?.Position; });
             _raceStart = _seconds;
             _isInRace = true;
         }
 
         private void JoinRace(CustomEventReceivedArgs obj)
         {
+            _vehicle = Game.Player.Character.CurrentVehicle;
             StartRace();
         }
 

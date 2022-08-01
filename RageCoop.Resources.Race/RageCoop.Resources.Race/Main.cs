@@ -136,7 +136,7 @@ namespace RageCoop.Resources.Race
 
                     lock (Session.Players)
                         foreach (var player in Session.Players)
-                            player.Vehicle.Freeze(false);
+                            player.Client.Player.LastVehicle.Freeze(false);
 
                     Session.State = State.Started;
                     Session.RaceStart = Environment.TickCount64;
@@ -194,9 +194,9 @@ namespace RageCoop.Resources.Race
                 var heading = Session.Map.SpawnPoints[spawnPoint % Session.Map.SpawnPoints.Length].Heading;
                 client.Player.Position = position + new Vector3(4, 0, 1);
                 player.VehicleHash = (int)Session.Map.AvailableVehicles[Random.Next(Session.Map.AvailableVehicles.Length)];
-                player.Vehicle = API.Entities.CreateVehicle(client, player.VehicleHash, position, heading);
+                var vehicle = API.Entities.CreateVehicle(client, player.VehicleHash, position, heading);
                 Thread.Sleep(1000);
-                client.SendNativeCall(Hash.SET_PED_INTO_VEHICLE, client.Player.Handle, player.Vehicle.Handle, -1);
+                client.SendNativeCall(Hash.SET_PED_INTO_VEHICLE, client.Player.Handle, vehicle.Handle, -1);
                 client.SendNativeCall(Hash._SET_AI_GLOBAL_PATH_NODES_TYPE, cayo);
                 client.SendCustomEvent(Events.StartCheckpointSequence, Checkpoints.ToArray());
                 if (Session.State == State.Started)
@@ -205,7 +205,7 @@ namespace RageCoop.Resources.Race
                     API.SendChatMessage($"{client.Username} joined the race");
                 }
                 else
-                    player.Vehicle.Freeze(true);
+                    vehicle.Freeze(true);
             });
             setupPlayer.Start();
         }
@@ -222,7 +222,7 @@ namespace RageCoop.Resources.Race
             {
                 if (!disconnected)
                 {
-                    player.Vehicle.Delete();
+                    player.Client.Player.LastVehicle.Delete();
                     client.SendCustomEvent(Events.LeaveRace);
                     API.SendChatMessage($"{client.Username} left the race");
                 }
@@ -282,30 +282,6 @@ namespace RageCoop.Resources.Race
         {
             if (Session.State == State.Started)
                 Leave(ctx.Client, false);
-        }
-
-        [Command("respawn")]
-        public static void Restart(CommandContext ctx)
-        {
-            if (Session.State == State.Started)
-            {
-                Player player;
-                lock (Session.Players)
-                    player = Session.Players.FirstOrDefault(x => x.Client == ctx.Client);
-                if (player != null)
-                {
-                    var last = player.CheckpointsPassed > 0 ? Session.Map.Checkpoints[player.CheckpointsPassed - 1] :
-                        Session.Map.SpawnPoints[Random.Next(Session.Map.SpawnPoints.Length)].Position;
-                    var dir = Vector3.Normalize(Session.Map.Checkpoints[player.CheckpointsPassed] - last);
-                    var heading = (float)(-Math.Atan2(dir.X, dir.Y) * 180.0 / Math.PI);
-                    player.Client.SendNativeCall(Hash.SET_ENTITY_COORDS, player.Vehicle.Handle, last.X, last.Y, last.Z, 0, 0, 0, 1);
-                    player.Client.SendNativeCall(Hash.SET_ENTITY_HEADING, player.Vehicle.Handle, heading);
-                    player.Client.SendNativeCall(Hash.STOP_ENTITY_FIRE, player.Vehicle.Handle);
-                    player.Client.SendNativeCall(Hash.SET_PED_INTO_VEHICLE, player.Client.Player.Handle, player.Vehicle.Handle, -1);
-                    player.Client.SendNativeCall(Hash.SET_VEHICLE_FIXED, player.Vehicle.Handle);
-                    player.Client.SendNativeCall(Hash.SET_VEHICLE_ENGINE_ON, player.Vehicle.Handle, true, true);
-                }
-            }
         }
 
         private string[] GetMaps()

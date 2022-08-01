@@ -1,6 +1,4 @@
 ﻿using RageCoop.Server;
-using RageCoop.Server.Scripting;
-using GTA.Math;
 
 namespace RageCoop.Resources.Race.Objects
 {
@@ -25,7 +23,7 @@ namespace RageCoop.Resources.Race.Objects
                 double score = x.CheckpointsPassed;
                 if (x.CheckpointsPassed<checkPoints.Length)
                 {
-                    score-=x.Vehicle.Position.DistanceTo(checkPoints[x.CheckpointsPassed])*0.000001;
+                    score-=x.Client.Player.LastVehicle.Position.DistanceTo(checkPoints[x.CheckpointsPassed])*0.000001;
                 }
                 return score;
             }).ToArray();
@@ -40,7 +38,6 @@ namespace RageCoop.Resources.Race.Objects
     {
         public Client Client;
         public int VehicleHash;
-        public ServerVehicle Vehicle;
         public int CheckpointsPassed;
         public ushort Ranking = 1;
 
