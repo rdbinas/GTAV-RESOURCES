@@ -273,7 +273,7 @@ namespace RageCoop.Resources.Race
         [Command("join")]
         public void Join(CommandContext ctx)
         {
-            if (Session.State == State.Started)
+            if (Session.State == State.Started && !Session.Players.Any(x => x.Client == ctx.Client))
                 Join(ctx.Client, Random.Next(Session.Map.SpawnPoints.Length));
         }
 
