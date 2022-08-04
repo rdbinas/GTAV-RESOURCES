@@ -277,7 +277,7 @@ namespace RageCoop.Resources.Race
 
         private void JoinRace(CustomEventReceivedArgs obj)
         {
-            _vehicle = Game.Player.Character.CurrentVehicle;
+            API.QueueAction(() => { _vehicle = Game.Player.Character.CurrentVehicle; });
             StartRace();
         }
 
