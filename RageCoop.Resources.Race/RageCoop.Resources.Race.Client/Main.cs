@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using System.Threading;
 using GTA.Math;
 using System.Collections.Generic;
+using System.IO;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace RageCoop.Resources.Race
 {
@@ -27,6 +30,7 @@ namespace RageCoop.Resources.Race
         int _cheating = 0;
         int _playerCount = 0;
         int _rankingPotition = 0;
+        Settings _settings;
 
         public override void OnStart()
         {
@@ -37,9 +41,10 @@ namespace RageCoop.Resources.Race
             API.RegisterCustomEventHandler(Events.PositionRanking, (e) => {_rankingPotition=(ushort)e.Args[0];_playerCount=(ushort)e.Args[1]; });
             API.Events.OnTick+=OnTick;
             API.Events.OnKeyDown+=OnKeyDown;
-            API.QueueAction(() => { Function.Call(Hash.ON_ENTER_MP); });
+            _settings = Settings.ReadSettings(Path.Combine(AppContext.BaseDirectory, CurrentResource.DataFolder, "Settings.xml"));
+            if (_settings.LoadMPMaps)
+                API.QueueAction(() => { Function.Call(Hash.ON_ENTER_MP); });
         }
-
 
         private void OnTick()
         {
@@ -349,6 +354,31 @@ namespace RageCoop.Resources.Race
                 // Finally, return a new point with the correct resolution
                 return new Point((int)Math.Round(g * wmp), (int)Math.Round(g * 5.4f));
             }
+        }
+    }
+
+    public class Settings
+    {
+        public bool LoadMPMaps { get; set; }
+
+        public Settings()
+        {
+            LoadMPMaps = true;
+        }
+
+        public static Settings ReadSettings(string path)
+        {
+            var ser = new XmlSerializer(typeof(Settings));
+            var xmlSettings = new XmlWriterSettings()
+            {
+                Indent = true,
+            };
+            Settings settings = null;
+            if (File.Exists(path))
+                using (var stream = XmlReader.Create(path)) settings = (Settings)ser.Deserialize(stream);
+            else
+                using (var stream = XmlWriter.Create(path, xmlSettings)) ser.Serialize(stream, settings = new Settings());
+            return settings;
         }
     }
 }
