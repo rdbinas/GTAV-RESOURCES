@@ -18,10 +18,12 @@ namespace RageCoop.Resources.Discord
             API.Events.OnPlayerConnected += (s, c) =>
             {
                 DiscordBot.SendToDiscord($"{c.Username} connected").GetAwaiter().GetResult();
+                DiscordBot.SetGame(API.GetAllClients().Count).GetAwaiter().GetResult();
             };
             API.Events.OnPlayerDisconnected += (s, c) =>
             {
                 DiscordBot.SendToDiscord($"{c.Username} disconnected").GetAwaiter().GetResult();
+                DiscordBot.SetGame(API.GetAllClients().Count).GetAwaiter().GetResult();
             };
             API.Events.OnChatMessage += (s, m) =>
             {
@@ -129,6 +131,12 @@ namespace RageCoop.Resources.Discord
         {
             if (Enabled)
                 await Webhook.SendMessageAsync(text: message, username: name);
+        }
+
+        public async Task SetGame(int n)
+        {
+            if (Enabled)
+                await Client.SetGameAsync(n > 0 ? $"{n} player{(n > 1 ? "s" : "")} online" : null);
         }
     }
 }
