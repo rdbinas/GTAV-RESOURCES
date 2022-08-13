@@ -23,7 +23,14 @@ namespace RageCoop.Resources.Race.Objects
                 double score = x.CheckpointsPassed;
                 if (x.CheckpointsPassed<checkPoints.Length)
                 {
-                    score-=x.Client.Player.LastVehicle.Position.DistanceTo(checkPoints[x.CheckpointsPassed])*0.000001;
+                    if (x.Client.Player.LastVehicle!=null)
+                    {
+                        score-=x.Client.Player.LastVehicle.Position.DistanceTo(checkPoints[x.CheckpointsPassed])*0.000001;
+                    }
+                    else
+                    {
+                        score-=1;
+                    }
                 }
                 return score;
             }).ToArray();
