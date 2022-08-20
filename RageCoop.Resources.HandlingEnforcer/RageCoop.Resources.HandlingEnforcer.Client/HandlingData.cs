@@ -22,7 +22,7 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
         {
 
         }
-        public HandlingData(XmlNode node)
+        private HandlingData(XmlNode node)
         {
             foreach(XmlNode n in node.ChildNodes)
             {
@@ -202,6 +202,15 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
             TractionLossMultiplier=h.TractionLossMultiplier;
             TractionSpringDeltaMax=h.TractionSpringDeltaMax;
             WeaponDamageMultiplier=h.WeaponDamageMultiplier;
+            BoostMaxSpeed=h.BoostMaxSpeed;
+            BrakeBiasFront=h.BrakeBiasFront;
+            DownForceModifier=h.DownForceModifier;
+            InitialDragCoefficient=h.InitialDragCoefficient;
+            InitialDriveMaxFlatVelocity=h.InitialDriveMaxFlatVelocity;
+            LowSpeedTractionLossMultiplier=h.LowSpeedTractionLossMultiplier;
+            PopUpLightRotation=h.PopUpLightRotation;
+            RocketBoostCapacity=h.RocketBoostCapacity;
+            TractionCurveLateral=h.TractionCurveLateral;
         }
         Vector3 ToVec(XmlNode n)
         {
@@ -253,9 +262,26 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
             h.TractionLossMultiplier=TractionLossMultiplier;
             h.TractionSpringDeltaMax=TractionSpringDeltaMax;
             h.WeaponDamageMultiplier=WeaponDamageMultiplier;
-
-
+            h.BoostMaxSpeed=BoostMaxSpeed;
+            h.BrakeBiasFront=BrakeBiasFront;
+            h.DownForceModifier=DownForceModifier;
+            h.InitialDragCoefficient=InitialDragCoefficient;
+            h.InitialDriveMaxFlatVelocity=InitialDriveMaxFlatVelocity;
+            h.LowSpeedTractionLossMultiplier=LowSpeedTractionLossMultiplier;
+            h.PopUpLightRotation=PopUpLightRotation;
+            h.RocketBoostCapacity=RocketBoostCapacity;
+            h.TractionCurveLateral=TractionCurveLateral;
         }
+        public float BoostMaxSpeed;
+        public float BrakeBiasFront;
+        public float DownForceModifier;
+        public float InitialDragCoefficient;
+        public float InitialDriveMaxFlatVelocity;
+        public float LowSpeedTractionLossMultiplier;
+        public float PopUpLightRotation;
+        public float RocketBoostCapacity;
+        public float TractionCurveLateral;
+
         public string Name;
         public int Hash;
         public float AntiRollBarBiasFront;
@@ -297,5 +323,25 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
         public float TractionLossMultiplier;
         public float TractionSpringDeltaMax;
         public float WeaponDamageMultiplier;
+    }
+    public class VersionConverter : JsonConverter<GTA.Math.Vector3>
+    {
+        public override void WriteJson(JsonWriter writer, GTA.Math.Vector3 value, JsonSerializer serializer)
+        {
+            writer.WriteValue(value.X);
+            writer.WriteValue(value.Y);
+            writer.WriteValue(value.Z);
+        }
+
+        public override GTA.Math.Vector3 ReadJson(JsonReader reader, Type objectType, GTA.Math.Vector3 existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+
+            return new GTA.Math.Vector3()
+            {
+                X=(float)reader.ReadAsDouble(),
+                Y=(float)reader.ReadAsDouble(),
+                Z=(float)reader.ReadAsDouble(),
+            };
+        }
     }
 }

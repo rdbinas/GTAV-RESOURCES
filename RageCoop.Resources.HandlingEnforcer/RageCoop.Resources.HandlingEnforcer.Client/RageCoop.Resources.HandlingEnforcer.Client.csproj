@@ -18,5 +18,6 @@
 		<Reference Include="ScriptHookVDotNet3">
 			<HintPath>..\..\..\RAGECOOP-V\libs\ScriptHookVDotNet3.dll</HintPath>
 		</Reference>
+		<Reference Include="System.Windows.Forms" />
 	</ItemGroup>
 </Project>

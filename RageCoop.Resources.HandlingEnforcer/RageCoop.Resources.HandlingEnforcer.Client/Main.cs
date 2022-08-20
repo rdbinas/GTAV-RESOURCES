@@ -14,7 +14,14 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
         public override void OnStart()
         {
             API.RequestSharedFile("handling.json", Load);
-            API.QueueAction(()=>ExportAll());
+            API.Events.OnKeyDown+=(s, e) =>
+            {
+                if (e.KeyCode==System.Windows.Forms.Keys.U)
+                {
+                    ExportAll();
+                    GTA.UI.Notification.Show("handling.json exported to working directory");
+                }
+            };
         }
         void Load(string s)
         {
@@ -58,7 +65,7 @@ namespace RageCoop.Resources.HandlingEnforcer.Client
                     var h = v.HandlingData;
                     if (!ModifiedHandlings.ContainsKey(h))
                     {
-                        Logger.Debug("Applying handling data to: "+v.DisplayName+" hash:"+data.Hash);
+                        // Logger.Debug("Applying handling data to: "+v.DisplayName+" hash:"+data.Hash);
 
                         // Copy and store unmodified handling data
                         ModifiedHandlings.Add(h, new HandlingData(h,v.Model.Hash));
