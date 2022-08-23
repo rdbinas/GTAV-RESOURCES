@@ -6,6 +6,7 @@ using RageCoop.Core.Scripting;
 using RageCoop.Core;
 using System.Data.SQLite;
 using Newtonsoft.Json;
+using System.Net;
 
 namespace RageCoop.Resources.Management
 {
@@ -47,31 +48,40 @@ namespace RageCoop.Resources.Management
             if (HasPermission(ctx.Client, PermissionFlags.Ban))
             {
                 var username = ctx.Args[0];
-                var reason = ctx.Args.Length>=2 ? ctx.Args[1] : "EAT POOP!";
-                if (ctx.Args.Length<1) { return; }
-                else if (username.ToLower()==ctx.Client?.Username?.ToLower())
+                if(IPEndPoint.TryParse(username,out var p))
                 {
-                    ctx.Client?.SendChatMessage("You cannot ban yourself.");
-                    return;
+                    ManagementStore.Ban(p.Address.ToString(), username); 
+                    API.SendChatMessage($"{username} was banned");
+                    Logger.Info(($"{username} was banned"));
                 }
-                try
+                else
                 {
-                    var c = API.GetClientByUsername(username);
-                    if (c!=null)
+                    var reason = ctx.Args.Length >= 2 ? ctx.Args[1] : "EAT POOP!";
+                    if (ctx.Args.Length < 1) { return; }
+                    else if (username.ToLower() == ctx.Client?.Username?.ToLower())
                     {
-                        ManagementStore.Ban(c.EndPoint.Address.ToString(), username);
-                        c.Kick(reason);
-                        API.SendChatMessage($"{username} was banned:"+reason);
+                        ctx.Client?.SendChatMessage("You cannot ban yourself.");
+                        return;
                     }
-                    else
+                    try
                     {
-                        ctx.Client?.SendChatMessage($"Can't find user: {username}");
-                    }
+                        var c = API.GetClientByUsername(username);
+                        if (c != null)
+                        {
+                            ManagementStore.Ban(c.EndPoint.Address.ToString(), username);
+                            c.Kick(reason);
+                            API.SendChatMessage($"{username} was banned:" + reason);
+                        }
+                        else
+                        {
+                            ctx.Client?.SendChatMessage($"Can't find user: {username}");
+                        }
 
-                }
-                catch (Exception ex)
-                {
-                    API.Logger.Error(ex);
+                    }
+                    catch (Exception ex)
+                    {
+                        API.Logger.Error(ex);
+                    }
                 }
             }
             else
