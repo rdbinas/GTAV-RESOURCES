@@ -17,10 +17,7 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version:  ${{ matrix.dotnet-version }}
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Restore nuget packages
-      run: nuget restore
+        
     - name: Build resources
       run: RageCoop.ResourceBuilder.exe
     - name: Commit files
