@@ -1,0 +1,7 @@
+{
+  "Name": "RageCoop.Resources.Race",
+  "Description": "Race resource for RAGECOOP-V",
+  "ClientResources": ["RageCoop.Resources.Race.Client/RageCoop.Resources.Race.Client.csproj"],
+  "ServerResources": ["RageCoop.Resources.Race/RageCoop.Resources.Race.csproj"],
+  "Version": "0.4"
+}
