@@ -98,7 +98,7 @@ Register,
 All
 ```
 
-## Server set up
+## Server setup
 You can execute commands directly in server console with all permissions, there's one default admin user:<br/>
 - Name: Sausage
 - Password: ilovesausage
