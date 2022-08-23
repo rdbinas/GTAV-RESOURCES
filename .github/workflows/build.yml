@@ -19,7 +19,7 @@ jobs:
         dotnet-version:  ${{ matrix.dotnet-version }}
         
     - name: Build resources
-      run: RageCoop.ResourceBuilder.exe
+      run: .\RageCoop.ResourceBuilder.exe
     - name: Commit files
       run: |
         git config --local user.email "blahblahblah@users.noreply.github.com"
