@@ -9,11 +9,11 @@ Put `RageCoop.Resources.Management.respkg` in `[ServerRoot]\Resources\Packages`
 
 Prefix command name with "/" to execute commands with chat messages, e.g. `/kick Asshole123`
 
-### kick [username]
+### kick [username] [reason]
 Required permissions: Kick <br/>
 Kick a user from this server.
 
-### ban [username|address]
+### ban [username|address] [reason]
 Required permissions: Ban <br/>
 Ban a user permenently from this server.
 
