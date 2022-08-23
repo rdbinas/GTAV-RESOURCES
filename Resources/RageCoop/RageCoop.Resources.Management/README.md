@@ -36,7 +36,7 @@ Required permissions: All <br/>
 Set a user to a specific role.
 
 # Configurations
-The user database and configuration file is located at [ServerRoot]\Resources\Server\data\RageCoop.Resources.Management
+The user database and configuration file are located at `[ServerRoot]\Resources\Server\data\RageCoop.Resources.Management` <br/>
 Some basic configuration are stored in Config.json, explained as follows:
 ```
 {
@@ -88,7 +88,7 @@ Possible value are only 0 and 1.
 If set to 0, user won't be able to execute commands not defined in WhiteListedCommands.
 If set to 1, user will able to execute all non-managerial command not defined in BlackListedCommands.
 ## Permissions
-All possible values listed below, you can define multiple permissions by seperating them with comma
+All possible values listed below, you can set multiple permissions by seperating them with comma
 ```
 None,
 Mute,
@@ -98,9 +98,12 @@ Register,
 All
 ```
 
+## Members.db
+Other than using commands, you can use [database editor](https://sqlitebrowser.org/) to view/edit the members and banned address in **Members.db** directly as well. 
+
 ## Server setup
 You can execute commands directly in server console with all permissions, there's one default admin user:<br/>
 - Name: Sausage
 - Password: ilovesausage
-- Remeber to change the password or unregister it before you expose the server to internet!
+- Remeber to change the password or unregister it before exposing the server to the Internet!
 
