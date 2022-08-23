@@ -24,7 +24,7 @@ jobs:
       run: |
         git config --local user.email "blahblahblah@users.noreply.github.com"
         git config --local user.name "RAGECOOP resource builder"
-        git commit -m "Add changes" -a
+        git commit -m "Build resources" -a
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
