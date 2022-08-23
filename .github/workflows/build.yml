@@ -1,0 +1,32 @@
+name: Build Resources
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet-version: ['6.0.x']
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version:  ${{ matrix.dotnet-version }}
+        
+    - name: Build resources
+      run: .\RageCoop.ResourceBuilder.exe
+    - name: Commit files
+      run: |
+        git config --local user.email "blahblahblah@users.noreply.github.com"
+        git config --local user.name "RAGECOOP resource builder"
+        git commit -m "Add changes" -a
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
