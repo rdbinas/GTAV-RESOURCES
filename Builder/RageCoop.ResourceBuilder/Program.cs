@@ -16,7 +16,12 @@ public class Program
     public static void Main(string[] args)
     {
         File.WriteAllText("ResourceManifest.json",JsonConvert.SerializeObject(new ResourceManifest(),Formatting.Indented));
-        foreach (var dir in Directory.GetDirectories("Resources", "*", SearchOption.AllDirectories))
+        var targets = args;
+        if (targets.Length == 0)
+        {
+            targets = Directory.GetDirectories("Resources", "*", SearchOption.AllDirectories);
+        }
+        foreach (var dir in targets)
         {
             try
             {
@@ -25,7 +30,7 @@ public class Program
                 {
                     continue;
                 }
-                Console.WriteLine("building resource from dir: " + dir);
+                Console.WriteLine("building resource from directory: " + dir);
                 var manifest = JsonConvert.DeserializeObject<ResourceManifest>(File.ReadAllText(manifestPath));
                 try
                 {
@@ -61,7 +66,7 @@ public class Program
             Pack(fol);
         }
         var output = Path.Combine(workingDir, manifest.Name + ".respkg");
-        if (File.Exists(output)) { File.Delete(output); }
+        foreach (var f in Directory.GetFiles(workingDir,"*.respkg")) { File.Delete(f); }
         Console.WriteLine("Packaging to "+output);
         PackFinal(Path.Combine(workingDir,"bin","tmp"), output,Path.Combine(workingDir,"ResourceManifest.json"));
         Console.WriteLine($"Resource \"{manifest.Name}\" built successfully");
@@ -106,6 +111,8 @@ public class Program
         {
             var server = Path.Combine(tmpDir, "Server");
             var client = Path.Combine(tmpDir, "Client");
+            Directory.CreateDirectory(server);
+            Directory.CreateDirectory(client);
             using ZipFile zip = ZipFile.Create(output);
             zip.BeginUpdate();
             zip.AddDirectory("Client");

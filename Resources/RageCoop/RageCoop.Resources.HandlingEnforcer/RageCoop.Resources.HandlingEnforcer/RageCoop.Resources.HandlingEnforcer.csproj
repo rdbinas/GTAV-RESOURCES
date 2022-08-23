@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-	  <OutDir>..\..\..\RageCoop-V\bin\Debug\Server\Resources\Server\RageCoop.Resources.HandlingEnforcer</OutDir>
+	  <OutDir>..\..\..\..\..\RageCoop-V\bin\Debug\Server\Resources\Server\RageCoop.Resources.HandlingEnforcer</OutDir>
 	  <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
