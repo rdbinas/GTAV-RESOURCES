@@ -2,6 +2,8 @@
 
 This resource allows you to create and manage user credential, you can kick or ban other users on your server.
 
+## Installation
+Put RageCoop.Resources.Management.respkg in [ServerRoot]\Resources\Packages
 
 ## Commands
 
