@@ -1,0 +1,7 @@
+{
+  "Name": "RageCoop.Resources.Management",
+  "Description": "Management resource for RAGECOOP-V",
+  "ClientResources": [],
+  "ServerResources": ["RageCoop.Resources.Management/RageCoop.Resources.Management.csproj"],
+  "Version": "0.1"
+}

@@ -14,10 +14,10 @@
 
   <ItemGroup>
     <Reference Include="RageCoop.Core">
-      <HintPath>..\..\..\RageCoop-V\bin\Debug\Core\RageCoop.Core.dll</HintPath>
+      <HintPath>..\..\..\..\RageCoop.Core.dll</HintPath>
     </Reference>
     <Reference Include="RageCoop.Server">
-      <HintPath>..\..\..\RageCoop-V\bin\Debug\Server\RageCoop.Server.dll</HintPath>
+      <HintPath>..\..\..\..\RageCoop.Server.dll</HintPath>
     </Reference>
   </ItemGroup>
 

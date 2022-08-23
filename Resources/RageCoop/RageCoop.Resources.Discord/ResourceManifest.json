@@ -1,0 +1,7 @@
+{
+  "Name": "RageCoop.Resources.Discord",
+  "Description": "Discord resource for RAGECOOP-V",
+  "ClientResources": [],
+  "ServerResources": ["RageCoop.Resources.Discord/RageCoop.Resources.Discord.csproj"],
+  "Version": "0.4"
+}

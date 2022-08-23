@@ -8,13 +8,13 @@
 
   <ItemGroup>
     <Reference Include="RageCoop.Core">
-      <HintPath>..\..\..\RAGECOOP-V\bin\Debug\Server\RageCoop.Core.dll</HintPath>
+      <HintPath>..\..\..\..\RageCoop.Core.dll</HintPath>
     </Reference>
     <Reference Include="RageCoop.Server">
-      <HintPath>..\..\..\RAGECOOP-V\bin\Debug\Server\RageCoop.Server.dll</HintPath>
+      <HintPath>..\..\..\..\RageCoop.Server.dll</HintPath>
     </Reference>
     <Reference Include="ScriptHookVDotNet3">
-      <HintPath>..\..\..\RAGECOOP-V\libs\ScriptHookVDotNet3.dll</HintPath>
+      <HintPath>..\..\..\..\ScriptHookVDotNet3.dll</HintPath>
     </Reference>
   </ItemGroup>
 
