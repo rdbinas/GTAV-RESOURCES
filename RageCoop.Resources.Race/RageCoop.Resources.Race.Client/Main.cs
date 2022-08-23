@@ -211,11 +211,13 @@ namespace RageCoop.Resources.Race
                     var radio = Game.RadioStation;
                     _vehicle.Delete();
                     _vehicle=World.CreateVehicle(model, _lastCheckPoint.Value, heading);
+                    if(_vehicle== null) { return false; }
                     Function.Call(Hash.SET_VEHICLE_COLOURS,_vehicle,primaryColor, secondaryColor);
                     _vehicle.PlaceOnGround();
                     Game.Player.Character.SetIntoVehicle(_vehicle, VehicleSeat.Driver);
                     Game.RadioStation = radio;
                     Screen.FadeIn(1000);
+                    return true;
                 });
             });
         }
