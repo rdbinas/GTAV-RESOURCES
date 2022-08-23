@@ -42,6 +42,20 @@ namespace RageCoop.Resources.Race
             Session.State = State.Voting;
             Session.Votes = new Dictionary<Client, string>();
             Session.Players = new List<Player>();
+            if (GetMaps().Length== 0)
+            {
+                Logger.Warning("No maps found, applying default maps");
+                foreach(var file in CurrentResource.Files.Values)
+                {
+                    if (file.Name.StartsWith("Maps") && file.Name.EndsWith(".xml") && !file.IsDirectory)
+                    {
+                        var target = File.Create(Path.Combine(CurrentResource.DataFolder,file.Name));
+                        file.GetStream().CopyTo(target);
+                        target.Close();
+                        target.Dispose();
+                    }
+                }
+            }
             Maps = GetMaps()?.Select(map => (Map)Serializer.Deserialize(new StreamReader(map))).ToList();
             InitDB();
             RankingThread= new Thread(() =>
