@@ -28,7 +28,7 @@ register a user on this server with secified password and assigned the default r
 ### unregister [username]
 Required permissions: All or None <br/>
 Remove a user from the database, but the client won't be kicked immediately.
-The client that executes this command must have `All` permission for the [username] argument to work. 
+The client that executes this command must have `All` permission for the [username] argument to work. <br/>
 If [username] is not provided, the executor itself will be unregistered.
 
 ### setrole [username] [role]
@@ -79,7 +79,7 @@ Roles are defined in Config.json
 There're some default roles defined
 - Admin: Server administrator with all permissions
 - User: Registered user that can execute non-blacklisted commands
-- Guest: Unauthorized user will be assigned to this role, they cannot user command other than `register` by default. DO NOT delete this role!
+- Guest: Unauthorized user will be assigned to this role, they cannot use commands other than `register` by default. DO NOT delete this role!
 
 You can define your own roles as well.
 
