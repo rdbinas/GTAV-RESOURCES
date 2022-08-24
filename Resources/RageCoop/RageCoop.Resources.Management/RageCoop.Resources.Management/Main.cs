@@ -17,7 +17,7 @@ namespace RageCoop.Resources.Management
         public override void OnStart()
         {
             API.RegisterCommands(this);
-            ManagementStore=new ManagementStore(Path.Combine(CurrentResource.DataFolder));
+            ManagementStore=new ManagementStore(Path.Combine(CurrentResource.DataFolder),Logger);
             API.Logger.Info("Loaded management databse");
             API.Events.OnPlayerHandshake+=(s, e) =>
             {

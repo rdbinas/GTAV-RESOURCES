@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Data.SQLite;
 using Newtonsoft.Json;
+using RageCoop.Core;
 
 namespace RageCoop.Resources.Management
 {
@@ -9,17 +10,27 @@ namespace RageCoop.Resources.Management
 	{
 		private SQLiteConnection _con;
 		public Config Config { get; set; }
-		public ManagementStore(string dataFolder)
+		public ManagementStore(string dataFolder,Logger logger)
 		{
 			var configPath = Path.Combine(dataFolder, "Config.json");
-			try
-			{
-				Config=JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
-			}
-			catch
-			{
-				Config=new Config();
+            if (!File.Exists(configPath))
+            {
+				Config = new Config();
 				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
+			}
+            else
+            {
+				try
+				{
+					Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
+				}
+				catch(Exception ex)
+				{
+					logger.Warning("Failed to parse Config.json, overwritting with default values");
+					logger.Error(ex);
+					Config = new Config();
+					File.WriteAllText(configPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
+				}
 			}
 			InitDB(Path.Combine(dataFolder, "Members.db"));
 			var check = new SQLiteCommand("SELECT * FROM Members;", _con);
@@ -199,7 +210,7 @@ namespace RageCoop.Resources.Management
 
 		public override bool CanRead
 		{
-			get { return true; }
+			get { return false; }
 		}
 
 		public override bool CanConvert(Type objectType)
