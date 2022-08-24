@@ -17,6 +17,8 @@
   </ItemGroup>
 	<ItemGroup>
 		<None Include="$(ProjectDir)Maps\**" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="$(ProjectDir)runtimes\**" CopyToOutputDirectory="PreserveNewest" />
+
 	</ItemGroup>
 	<ItemGroup>
 	  <Reference Include="RageCoop.Core">
