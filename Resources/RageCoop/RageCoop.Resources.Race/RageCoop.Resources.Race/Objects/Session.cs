@@ -5,10 +5,10 @@ namespace RageCoop.Resources.Race.Objects
     public struct Session
     {
         public State State;
-        public Dictionary<Client, string> Votes;
+        public Dictionary<Client, string> Votes = new();
         public DateTime NextEvent;
 
-        public List<Player> Players;
+        public List<Player> Players = new();
         public Map Map;
         public long RaceStart;
 

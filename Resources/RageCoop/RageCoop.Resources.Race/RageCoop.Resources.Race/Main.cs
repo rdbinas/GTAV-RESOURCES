@@ -11,7 +11,7 @@ namespace RageCoop.Resources.Race
     public class Main : ServerScript
     {
         private static List<Map> Maps;
-        private static Session Session;
+        private static Session Session = new();
         private readonly List<object> Checkpoints = new();
 
         private readonly XmlSerializer Serializer = new(typeof(Map));
@@ -141,7 +141,7 @@ namespace RageCoop.Resources.Race
 
                 API.SendChatMessage("The race is about to start, get ready", null, "Server", false);
 
-                var countdown = new Thread((ThreadStart)delegate
+                Task.Run(() =>
                 {
                     Thread.Sleep(10000);
 
@@ -155,7 +155,6 @@ namespace RageCoop.Resources.Race
                     Session.State = State.Started;
                     Session.RaceStart = Environment.TickCount64;
                 });
-                countdown.Start();
             }
         }
 
