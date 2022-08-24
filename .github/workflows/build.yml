@@ -2,6 +2,11 @@ name: Build Resources
 
 on:
   workflow_dispatch:
+   inputs:
+      resource_dir:
+        description: 'The directories of resources to build'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -19,7 +24,7 @@ jobs:
         dotnet-version:  ${{ matrix.dotnet-version }}
         
     - name: Build resources
-      run: .\RageCoop.ResourceBuilder.exe
+      run: .\RageCoop.ResourceBuilder.exe ${{ github.event.inputs.resource_dir }}
     - name: Commit files
       run: |
         git config --local user.email "blahblahblah@users.noreply.github.com"
