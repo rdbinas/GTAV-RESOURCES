@@ -11,7 +11,7 @@ namespace RageCoop.Resources.Race
     public class Main : ServerScript
     {
         private static List<Map> Maps;
-        private static Session Session = new();
+        private static readonly Session Session = new();
         private readonly List<object> Checkpoints = new();
 
         private readonly XmlSerializer Serializer = new(typeof(Map));

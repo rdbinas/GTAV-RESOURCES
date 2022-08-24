@@ -2,7 +2,7 @@
 
 namespace RageCoop.Resources.Race.Objects
 {
-    public struct Session
+    public class Session
     {
         public State State;
         public Dictionary<Client, string> Votes = new();
