@@ -2,10 +2,7 @@
 
 // Optional
 using RageCoop.Server;
-using RageCoop.Core.Scripting;
 using RageCoop.Core;
-using System.Data.SQLite;
-using Newtonsoft.Json;
 using System.Net;
 
 namespace RageCoop.Resources.Management
@@ -13,15 +10,15 @@ namespace RageCoop.Resources.Management
     public class Main : ServerScript
     {
         public ManagementStore ManagementStore { get; set; }
-        private object _writeLock = new object();
         public override void OnStart()
         {
+            Util.Init(Logger);
             API.RegisterCommands(this);
             ManagementStore=new ManagementStore(Path.Combine(CurrentResource.DataFolder),Logger);
-            API.Logger.Info("Loaded management databse");
+            API.Logger.Info("Loaded management database");
             API.Events.OnPlayerHandshake+=(s, e) =>
             {
-                string bannedReason = ManagementStore.IsBanned(e.EndPoint.Address.ToString());
+                string bannedReason = ManagementStore.GetBanned(e.EndPoint.Address.ToString());
                 var m = ManagementStore.GetMember(e.Username);
                 if (bannedReason!=null)
                 {
@@ -50,9 +47,8 @@ namespace RageCoop.Resources.Management
                 var username = ctx.Args[0];
                 if(IPEndPoint.TryParse(username,out var p))
                 {
-                    ManagementStore.Ban(p.Address.ToString(), username); 
+                    ManagementStore.Ban(p.Address.ToString(), username, ctx.Args.Length >= 2 ? ctx.Args[1] : "Unspecified");
                     API.SendChatMessage($"{username} was banned");
-                    Logger.Info(($"{username} was banned"));
                 }
                 else
                 {
@@ -60,7 +56,7 @@ namespace RageCoop.Resources.Management
                     if (ctx.Args.Length < 1) { return; }
                     else if (username.ToLower() == ctx.Client?.Username?.ToLower())
                     {
-                        ctx.Client?.SendChatMessage("You cannot ban yourself.");
+                        ctx.Client.Message("You cannot ban yourself.");
                         return;
                     }
                     try
@@ -74,7 +70,7 @@ namespace RageCoop.Resources.Management
                         }
                         else
                         {
-                            ctx.Client?.SendChatMessage($"Can't find user: {username}");
+                            ctx.Client.Message($"Can't find user: {username}");
                         }
 
                     }
@@ -86,7 +82,7 @@ namespace RageCoop.Resources.Management
             }
             else
             {
-                ctx.Client?.SendChatMessage("You don't have permission to perform this operation");
+                ctx.Client.Message("You don't have permission to perform this operation");
             }
         }
 
@@ -97,15 +93,15 @@ namespace RageCoop.Resources.Management
             var name = ctx.Args[0];
             if (!HasPermission(ctx.Client, PermissionFlags.Ban))
             {
-                ctx.Client?.SendChatMessage("You don't have permission to perform this operation");
+                ctx.Client.Message("You don't have permission to perform this operation");
                 return;
             }
             Task.Run(() =>
             {
                 try
                 {
-                    ManagementStore.Unban(name);
-                    API.SendChatMessage($"{name} was unbanned.");
+                    ManagementStore.Unban(name,out var unbanned);
+                    API.SendChatMessage($"{string.Join(',',unbanned)} was unbanned.");
                 }
                 catch (Exception ex)
                 {
@@ -125,9 +121,13 @@ namespace RageCoop.Resources.Management
             var name = ctx.Args[0];
             var pass = ctx.Args[1];
             if (ManagementStore.Config.DefaultRole==null || ManagementStore.Config.DefaultRole.ToLower()=="guest") { return; }
-            if (ManagementStore.AddMember(name, pass.GetSHA256Hash().ToHexString(), ManagementStore.Config.DefaultRole))
+            if (ManagementStore.UpdateMember(name, pass.GetSHA256Hash().ToHexString(), ManagementStore.Config.DefaultRole))
             {
-                ctx.Client?.SendChatMessage("Successfully registered user: "+name);
+                ctx.Client.Message("Updated user info: " + name);
+            }
+            else
+            {
+                ctx.Client.Message("Successfully registered user: " + name);
             }
         }
 
@@ -145,11 +145,15 @@ namespace RageCoop.Resources.Management
             }
             else
             {
-                return ;
+                return;
             }
             if (ManagementStore.RemoveMember(name))
             {
-                ctx.Client?.SendChatMessage("Succesfully removed member: "+ name);
+                ctx.Client.Message("Successfully removed member: " + name);
+            }
+            else
+            {
+                ctx.Client.Message("Member not found: " + name);
             }
         }
 
@@ -169,44 +173,34 @@ namespace RageCoop.Resources.Management
                 }
                 else
                 {
-                    ctx.Client?.SendChatMessage($"Can't find user:{ctx.Args[0]}.");
+                    ctx.Client.Message($"Can't find user:{ctx.Args[0]}.");
                 }
             }
             else
             {
-                ctx.Client?.SendChatMessage("You don't have permission to perform this operation");
+                ctx.Client.Message("You don't have permission to perform this operation");
             }
         }
 
         [Command("setrole")]
         public void SetRole(CommandContext ctx)
         {
-            if(ctx!=null && !HasPermission(ctx.Client, PermissionFlags.All))
+            if (ctx!=null && !HasPermission(ctx.Client, PermissionFlags.All))
             {
-                ctx.Client?.SendChatMessage("You don't have permission to perform this operation");
+                ctx.Client.Message("You don't have permission to perform this operation");
                 return;
             }
-            if(ctx.Args.Length<2) { return;}
+            if (ctx.Args.Length<2) { return;}
             var name = ctx.Args[0];
             var role=ctx.Args[1];
             if (ManagementStore.Config.Roles.ContainsKey(role) && ManagementStore.SetRole(name, role))
             {
-                ctx.Client?.SendChatMessage("Successfully updated role for member: "+name);
+                ctx.Client.Message("Successfully updated role for member: "+name);
             }
-
-        }
-        private Role GetRole(string username)
-        {
-            var r = ManagementStore.GetMember(username)?.Role;
-            if (r==null && ManagementStore.Config.AllowGuest)
+            else
             {
-                r="Guest";
+                ctx.Client.Message("Member or role not found");
             }
-            if (r!=null && ManagementStore.Config.Roles.TryGetValue(r, out Role role))
-            {
-                return role;
-            }
-            return null;
         }
         private void FilterCommand(object sender, OnCommandEventArgs e)
         {

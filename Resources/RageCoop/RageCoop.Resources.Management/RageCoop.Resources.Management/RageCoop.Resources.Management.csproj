@@ -10,8 +10,8 @@
 
   <ItemGroup>
 	  <None Include="$(ProjectDir)runtimes\**" CopyToOutputDirectory="PreserveNewest" />
+	  <PackageReference Include="LiteDB" Version="5.0.12" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.116" />
   </ItemGroup>
 
   <ItemGroup>

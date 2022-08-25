@@ -1,14 +1,19 @@
 using System;
 using System.Net;
-using System.Data.SQLite;
 using Newtonsoft.Json;
 using RageCoop.Core;
+using LiteDB;
+using JsonWriter= Newtonsoft.Json.JsonWriter;
+using JsonReader = Newtonsoft.Json.JsonReader;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace RageCoop.Resources.Management
 {
 	public class ManagementStore : IDisposable
 	{
-		private SQLiteConnection _con;
+		private readonly LiteDatabase _db;
+		private readonly ILiteCollection<Member> _members;
+		private readonly ILiteCollection<BanRecord> _banned;
 		public Config Config { get; set; }
 		public ManagementStore(string dataFolder,Logger logger)
 		{
@@ -32,143 +37,110 @@ namespace RageCoop.Resources.Management
 					File.WriteAllText(configPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
 				}
 			}
-			InitDB(Path.Combine(dataFolder, "Members.db"));
-			var check = new SQLiteCommand("SELECT * FROM Members;", _con);
-			if (!check.ExecuteReader().Read())
-			{
-				var query = new SQLiteCommand(
-				"INSERT INTO `Members` (Username, PassHash, Role) VALUES (\"sausage\",\"FB6F796DFD477E6361A19057EE0235E88820060EC786343229B4D839C01B47C3\" ,\"Admin\" );", _con);
-				query.ExecuteNonQuery();
-			}
+			if(File.Exists(Path.Combine(dataFolder, "Members.db")))
+            {
+				logger?.Warning($"You're using legacy databse system that's no longer supported, please migrate your data and delete \"{Path.Combine(dataFolder, "Members.db")}\"");
+            }
+			_db = new LiteDatabase(@$"Filename={Path.Combine(dataFolder, "ManagementStore.db")}; Connection=Shared;");
+			_members = _db.GetCollection<Member>();
+			_banned = _db.GetCollection<BanRecord>();
+            if (_members.Count() == 0)
+            {
+				UpdateMember("Sausage", "FB6F796DFD477E6361A19057EE0235E88820060EC786343229B4D839C01B47C3", "Admin");
+            }
 		}
-		private void InitDB(string path)
+		public string GetBanned(string ip)
 		{
-
-			if (!File.Exists(path))
-				SQLiteConnection.CreateFile(path);
-
-			var connectionString = new SQLiteConnectionStringBuilder()
-			{
-				DataSource = path,
-				Version = 3
-			};
-
-			_con = new SQLiteConnection(connectionString.ToString());
-			_con.Open();
-
-			new SQLiteCommand(@"
-                CREATE TABLE IF NOT EXISTS `Members` (
-                    `Username` TEXT PRIMARY KEY,
-                    `PassHash` TEXT,
-                    `Role` TEXT
-                );"
-			, _con).ExecuteNonQuery();
-
-			new SQLiteCommand(@"
-                CREATE TABLE IF NOT EXISTS `Banned` (
-                    `IP` TEXT PRIMARY KEY,
-                    `Username` TEXT,
-                    `Reason` TEXT
-                );"
-			, _con).ExecuteNonQuery();
-		}
-		public string IsBanned(string ip)
-		{
-			var query = new SQLiteCommand("SELECT * FROM `Banned` WHERE `IP` = @ip ;", _con);
-			query.Parameters.AddWithValue("@ip", ip);
-			var reader = query.ExecuteReader();
-			if (reader.Read())
-			{
-				return (string)reader["Reason"];
-			}
-			else
-			{
-				return null;
-			}
+			return _banned.Query().Where(x => x.Address == ip).FirstOrDefault()?.Reason;
 		}
 		public Member GetMember(string name)
 		{
-			var query = new SQLiteCommand($"SELECT * FROM `Members` WHERE `Username` = \"{name.ToLower()}\" ;", _con);
-			var reader = query.ExecuteReader();
-			if (reader.Read())
-			{
-				return new Member { PassHash=(string)reader["PassHash"], Role=(string)reader["Role"] };
-			}
-			else
-			{
-				return null;
-			}
+			return _members.Query().Where(x => x.Username.ToLower() == name.ToLower()).FirstOrDefault();
 		}
-		public bool AddMember(string username, string passHash, string role)
+		public bool UpdateMember(string username, string passHash, string role)
 		{
-			var check = new SQLiteCommand($"SELECT * FROM `Members` WHERE `Username` = \"{username.ToLower()}\";", _con);
-			if (!check.ExecuteReader().Read())
-			{
-				var query = new SQLiteCommand(
-				$"INSERT INTO `Members` (Username, PassHash, Role) " +
-				$"VALUES (\"{username.ToLower()}\",\"{passHash}\" ,\"{role}\" );", _con);
-				query.ExecuteNonQuery();
+			var m = new Member() { Username = username.ToLower(), PassHash = passHash, Role = role };
+            if (_members.Update(m))
+            {
 				return true;
-			}
-			else
-			{
-				return false;
-			}
+            }
+			_members.Insert(m);
+			return false;
 		}
 		public bool SetRole(string username, string role)
         {
-			username=username.ToLower();
-			SQLiteCommand query;
-			query = new SQLiteCommand($"UPDATE Members SET Role=\"{role}\" WHERE Username = \"{username.ToLower()}\";", _con);
-			return query.ExecuteNonQuery()!=0;
+			var m=_members.Query().Where(x => x.Username.ToLower()==username.ToLower()).FirstOrDefault();
+            if (m!=null)
+            {
+				m.Role = role;
+				_members.Update(m);
+				return true;
+            }
+			return false;
 		}
 		public bool RemoveMember(string username)
         {
-			SQLiteCommand query;
-			query = new SQLiteCommand($"DELETE FROM Members WHERE Username = \"{username.ToLower()}\";", _con);
-			return query.ExecuteNonQuery()!=0;
+			return _members.Delete(_members.FindOne(x => x.Username.ToLower() == username.ToLower()).Id);
 		}
-		public void Ban(string ip, string username, string reason = "Unspecified")
+		public bool Ban(string ip, string username, string reason = "Unspecified")
 		{
-			var query = new SQLiteCommand(
-				$"INSERT OR IGNORE INTO Banned(IP, Username, Reason) " +
-				$"VALUES(\"{ip}\", \"{username.ToLower()}\", \"{reason}\");", _con);
-			query.ExecuteNonQuery();
+
+			var m = _banned.FindOne(x => x.Address == ip);
+			if (m != null)
+			{
+				m.Username = username.ToLower();
+				m.Reason= reason;
+				_banned.Update(m);
+				return false;
+			}
+            else
+            {
+				_banned.Insert(new BanRecord() { Username = username.ToLower(), Address=ip,Reason=reason});
+				return true;
+            }
 		}
-		public void Unban(string ipOrUserName)
+		public void Unban(string ipOrUserName,out List<string> unbanned)
 		{
-			SQLiteCommand query;
-			if (IPEndPoint.TryParse(ipOrUserName, out _))
-			{
-				query = new SQLiteCommand($"DELETE FROM Banned WHERE IP = \"{ipOrUserName}\";", _con);
-			}
-			else
-			{
-				query = new SQLiteCommand($"DELETE FROM Banned WHERE Username = \"{ipOrUserName.ToLower()}\";", _con);
-			}
-			query.ExecuteNonQuery();
+			unbanned= new List<string>();
+			var records = _banned.Find(x=>x.Username.ToLower()==ipOrUserName.ToLower()||x.Address.ToLower()==ipOrUserName.ToLower());
+			foreach (var record in records)
+            {
+				_banned.Delete(record.Id);
+				unbanned.Add(record.Username);
+            }
 		}
 
 		public void Dispose()
 		{
-			_con.Close();
+			_db.Commit();
+			_db.Dispose();
 		}
 	}
 	public class Member
 	{
+		public int Id { get; set; }
+
+		public string Username { get; set; }
 		public string PassHash { get; set; }
 		public string Role { get; set; }
+	}
+	public class BanRecord
+	{
+		public int Id { get; set; }
+
+		public string Username { get; set; }
+		public string Address { get; set; }
+		public string Reason { get; set; }
 	}
 
 	[Flags]
 	public enum PermissionFlags : ulong
 	{
 		None = 0,
-		Mute = 1 << 0,
 		Kick = 1 << 1,
 		Ban = 1 << 2,
 		Register = 1 << 3,
-		All = ~0u
+		All = Kick|Ban|Register
 	}
 	public class Config
 	{
