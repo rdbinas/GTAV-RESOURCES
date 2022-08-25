@@ -17,7 +17,7 @@
   </ItemGroup>
 	<ItemGroup>
 		<None Include="$(ProjectDir)Maps\**" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="$(ProjectDir)runtimes\**" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="$(ProjectDir)RuntimeLibs\**" CopyToOutputDirectory="PreserveNewest" />
 
 	</ItemGroup>
 	<ItemGroup>
