@@ -3,5 +3,5 @@
   "Description": "Management resource for RAGECOOP-V",
   "ClientResources": [],
   "ServerResources": ["RageCoop.Resources.Management/RageCoop.Resources.Management.csproj"],
-  "Version": "0.1"
+  "Version": "0.2"
 }
