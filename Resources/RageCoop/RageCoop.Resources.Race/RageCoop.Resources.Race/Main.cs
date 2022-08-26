@@ -1,10 +1,10 @@
-﻿using System.Data.SQLite;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using GTA.Math;
 using GTA.Native;
 using RageCoop.Server;
 using RageCoop.Server.Scripting;
 using RageCoop.Resources.Race.Objects;
+using LiteDB;
 
 namespace RageCoop.Resources.Race
 {
@@ -16,7 +16,8 @@ namespace RageCoop.Resources.Race
 
         private readonly XmlSerializer Serializer = new(typeof(Map));
         private static readonly Random Random = new();
-        private static SQLiteConnection Connection;
+        private static LiteDatabase DB;
+        private static ILiteCollection<Record> Records;
         private Thread RankingThread;
         private static bool Stopping = false; 
 
@@ -57,8 +58,15 @@ namespace RageCoop.Resources.Race
                 }
             }
             Maps = GetMaps()?.Select(map => (Map)Serializer.Deserialize(new StreamReader(map))).ToList();
-            InitDB();
-            RankingThread= new Thread(() =>
+
+            if (File.Exists(Path.Combine(CurrentResource.DataFolder, "times.db")))
+            {
+                Logger.Warning("times.db is outdated, please convert it to new database format using the converter");
+            }
+            DB = new LiteDatabase(@$"Filename={Path.Combine(CurrentResource.DataFolder, "Records.db")}; Connection=Shared;");
+            Records = DB.GetCollection<Record>();
+
+            RankingThread = new Thread(() =>
             {
                 while (!Stopping)
                 {
@@ -88,6 +96,7 @@ namespace RageCoop.Resources.Race
         public override void OnStop()
         {
             Stopping=true;
+            DB.Dispose();
             RankingThread.Join();
             CurrentResource.Logger.Info($"Race resource stopped");
         }
@@ -117,9 +126,9 @@ namespace RageCoop.Resources.Race
                 var map = Session.Votes.GroupBy(x => x.Value).OrderByDescending(vote => vote.Count()).FirstOrDefault()?.Key ?? GetRandomMap();
                 Session.Map = Maps.First(x => x.Name == map);
                 API.SendChatMessage("Map: " + map);
-                var record = Record(map);
-                if (record.Item1 > 0)
-                    API.SendChatMessage($"Record: {TimeSpan.FromMilliseconds(record.Item1):m\\:ss\\.ff} by {record.Item2}");
+                var record = GetRecord(map);
+                if (record!=null)
+                    API.SendChatMessage($"Record: {TimeSpan.FromMilliseconds(record.Time):m\\:ss\\.ff} by {record.Player}");
 
                 foreach (var prop in Session.Map.DecorativeProps)
                 {
@@ -174,13 +183,13 @@ namespace RageCoop.Resources.Race
 
                         var time = Environment.TickCount64 - Session.RaceStart;
                         var msg = $"{player.Client.Username} finished in {TimeSpan.FromMilliseconds(time):m\\:ss\\.ff}";
-                        var record = Record(Session.Map.Name);
-                        if (record.Item1 > 0 && time < record.Item1)
+                        var record = GetRecord(Session.Map.Name);
+                        if (record != null && time < record.Time)
                             msg += " (new record)";
                         if (Session.Players.Count > 1)
                             msg += $" ({Wins(player.Client.Username) + 1} wins)";
                         API.SendChatMessage(msg);
-                        SaveTime(Session.Map.Name, player.Client.Username, time, Session.Players.Count > 1 ? 1 : 0);
+                        SaveTime(Session.Map.Name, player.Client.Username, time, Session.Players.Count > 1 );
                     }
                 }
             }
@@ -318,66 +327,25 @@ namespace RageCoop.Resources.Race
             return Maps[Random.Next(Maps.Count)].Name;
         }
 
-        private void InitDB()
+        private static void SaveTime(string race, string player, long time,bool win)
         {
-            var filename = Path.Combine(AppContext.BaseDirectory, CurrentResource.DataFolder, "times.db");
-
-            if (!File.Exists(filename))
-                SQLiteConnection.CreateFile(filename);
-
-            var connectionString = new SQLiteConnectionStringBuilder()
+            Records.Insert(new Record()
             {
-                DataSource = filename,
-                Version = 3
-            };
-
-            Connection = new SQLiteConnection(connectionString.ToString());
-            Connection.Open();
-
-            new SQLiteCommand(@"
-                CREATE TABLE IF NOT EXISTS `times` (
-                    `Id` INTEGER PRIMARY KEY AUTOINCREMENT,
-                    `Race` TEXT,
-                    `Player` TEXT,
-                    `Time` INTEGER,
-                    `Win` INTEGER
-                );"
-            , Connection).ExecuteNonQuery();
+                Race = race,
+                Player = player,
+                Time = time,
+                Win = win
+            });
         }
 
-        private static void SaveTime(string race, string player, long time, int win)
+        private static Record GetRecord(string race)
         {
-            var query = new SQLiteCommand(
-                "INSERT INTO `times` (`Race`, `Player`, `Time`, `Win`) VALUES (@race, @player, @time, @win);", Connection);
-            query.Parameters.AddWithValue("@race", race);
-            query.Parameters.AddWithValue("@player", player);
-            query.Parameters.AddWithValue("@time", time);
-            query.Parameters.AddWithValue("@win", win);
-            query.ExecuteNonQuery();
-        }
-
-        private static Tuple<long, string> Record(string race)
-        {
-            var query = new SQLiteCommand("SELECT * FROM `times` WHERE `race` = @race ORDER BY `time` ASC LIMIT 1;", Connection);
-            query.Parameters.AddWithValue("@race", race);
-
-            Tuple<long, string> record;
-            var reader = query.ExecuteReader();
-            if (reader.Read())
-                record = new((long)reader["Time"], (string)reader["Player"]);
-            else
-                record = new(0, "");
-            reader.Close();
-
-            return record;
+            return Records.Query().Where(x => x.Race == race).OrderBy(x => x.Time).Limit(1).FirstOrDefault();
         }
 
         private static int Wins(string player)
         {
-            var query = new SQLiteCommand("SELECT COUNT(*) FROM `times` WHERE `player` = @player AND `win` = 1;", Connection);
-            query.Parameters.AddWithValue("@player", player);
-
-            return Convert.ToInt32(query.ExecuteScalar());
+            return Records.Query().Where(x => x.Player.ToLower() == player.ToLower() && x.Win).Count();
         }
     }
 }
