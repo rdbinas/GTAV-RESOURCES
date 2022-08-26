@@ -27,7 +27,7 @@ jobs:
       run: .\RageCoop.ResourceBuilder.exe ${{ github.event.inputs.resource_dir }}
 
     - name: Deploy binaries 
-      uses: .github/actions/deploy-binaries
+      uses: .github/actions/deploy-binaries/index.js
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
       with:
