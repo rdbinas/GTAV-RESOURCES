@@ -25,14 +25,15 @@ jobs:
         
     - name: Build resources
       run: .\RageCoop.ResourceBuilder.exe ${{ github.event.inputs.resource_dir }}
-    - name: Commit files
-      run: |
-        git config --local user.email "blahblahblah@users.noreply.github.com"
-        git config --local user.name "RAGECOOP resource builder"
-        git add *.respkg
-        git commit -m "Build resources" -a
-    - name: Push changes
-      uses: ad-m/github-push-action@master
+
+    - name: Deploy binaries 
+      uses: Sardelka9515/deploy-nightly
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref }}
+        upload_url: https://api.github.com/repos/RAGECOOP/GTAV-RESOURCES/releases/75463254/assets{?name,label} 
+        release_id: 70603992 
+        asset_path: bin
+        asset_name: bin
+        asset_content_type: application/zip
+        max_releases: 7

@@ -21,6 +21,11 @@ public class Program
         {
             targets = Directory.GetDirectories("Resources", "*", SearchOption.AllDirectories);
         }
+        if (Directory.Exists("bin"))
+        {
+            Directory.Delete("bin",true);
+        }
+        Directory.CreateDirectory("bin");
         foreach (var target in targets)
         {
             string dir = target;
@@ -37,13 +42,18 @@ public class Program
                 }
                 Console.WriteLine("building resource from directory: " + dir);
                 var manifest = JsonConvert.DeserializeObject<ResourceManifest>(File.ReadAllText(manifestPath));
+                if (Path.GetFileName(dir) != manifest.Name || manifest.Name.Contains(' '))
+                {
+                    Console.Error.WriteLine($"Illegal resource name \"{manifest.Name}\" in manifest from directory \"{dir}\"");
+                    continue;
+                }
                 try
                 {
                     BuildResource(manifest, Path.GetFullPath(dir));
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Failed to build resource:{dir}\n{ex.ToString()}");
+                    Console.Error.WriteLine($"Failed to build resource:{dir}\n{ex}");
                 }
             }
             catch(Exception ex)
@@ -70,7 +80,7 @@ public class Program
         {
             Pack(fol);
         }
-        var output = Path.Combine(workingDir, manifest.Name + ".respkg");
+        var output = Path.Combine("bin", manifest.Name + ".respkg");
         foreach (var f in Directory.GetFiles(workingDir,"*.respkg")) { File.Delete(f); }
         Console.WriteLine("Packaging to "+output);
         PackFinal(Path.Combine(workingDir,"bin","tmp"), output,Path.Combine(workingDir,"ResourceManifest.json"));
