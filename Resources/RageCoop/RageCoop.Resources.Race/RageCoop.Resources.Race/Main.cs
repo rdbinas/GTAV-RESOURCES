@@ -266,8 +266,8 @@ namespace RageCoop.Resources.Race
 
         public void Cheating(CustomEventReceivedArgs obj)
         {
-            API.SendChatMessage($"{obj.Client.Username} is cheating");
-            //obj.Sender.Kick("Cheating");
+            //API.SendChatMessage($"{obj.Client.Username} is cheating", null, "Server", false);
+            obj.Client.Kick("Cheating");
         }
 
         [Command("vote")]
