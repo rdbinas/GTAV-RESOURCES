@@ -32,7 +32,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
       with:
         upload_url: https://api.github.com/repos/RAGECOOP/GTAV-RESOURCES/releases/75463254/assets{?name,label} 
-        release_id: 70603992 
+        release_id: 75463254 
         asset_path: bin
         asset_name: bin
         asset_content_type: application/zip
