@@ -21,8 +21,13 @@ public class Program
         {
             targets = Directory.GetDirectories("Resources", "*", SearchOption.AllDirectories);
         }
-        foreach (var dir in targets)
+        foreach (var target in targets)
         {
+            string dir = target;
+            if (!target.Contains('\\') && !target.Contains('/'))
+            {
+                dir = $"Resources\\{target.Split('.')[0]}\\{target}";
+            }
             try
             {
                 var manifestPath = Path.Combine(dir, "ResourceManifest.json");
