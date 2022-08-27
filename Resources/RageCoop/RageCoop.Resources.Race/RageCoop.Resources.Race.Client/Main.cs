@@ -31,6 +31,7 @@ namespace RageCoop.Resources.Race
         int _playerCount = 0;
         int _rankingPotition = 0;
         Settings _settings;
+        float _lastSpeed = 0;
 
         public override void OnStart()
         {
@@ -56,19 +57,20 @@ namespace RageCoop.Resources.Race
                 _lasttime = Environment.TickCount;
 
                 var veh = _player.CurrentVehicle;
-                if (veh != null)
+                if (veh != null && _isInRace)
                 {
-                    if (_isInRace && veh.HeightAboveGround > 3f && !veh.IsInAir && !veh.IsInWater && veh.Speed == 0f)
+                    if (veh.HeightAboveGround > 3f && !veh.IsInAir && !veh.IsInWater && veh.Speed == 0f)
                     {
                         _cheating++;
                         if (_cheating > 2)
-                        {
                             API.SendCustomEvent(Events.Cheating);
-                            _cheating = 0;
-                        }
                     }
                     else
                         _cheating = 0;
+
+                    if (veh.Speed - _lastSpeed > 10f && veh.Speed > 30f && !veh.HasRocketBoost && !veh.IsAircraft)
+                        API.SendCustomEvent(Events.Cheating);
+                    _lastSpeed = veh.Speed;
                 }
             }
 
