@@ -68,7 +68,7 @@ namespace RageCoop.Resources.Race
                     else
                         _cheating = 0;
 
-                    if (veh.Speed - _lastSpeed > 10f && veh.Speed > 30f && !veh.HasRocketBoost && !veh.IsAircraft)
+                    if (veh.Speed - _lastSpeed > 15f && veh.Speed > 30f && !veh.HasRocketBoost && !veh.IsAircraft)
                         API.SendCustomEvent(Events.Cheating);
                     _lastSpeed = veh.Speed;
                 }
