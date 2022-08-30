@@ -212,8 +212,13 @@ namespace RageCoop.Resources.Race
                     }
                     var radio = Game.RadioStation;
                     _vehicle.Delete();
+                    model.Request(1000);
                     _vehicle=World.CreateVehicle(model, _lastCheckPoint.Value, heading);
-                    if(_vehicle== null) { return false; }
+                    if (_vehicle == null)
+                    {
+                        Screen.FadeIn(1000);
+                        return false;
+                    }
                     Function.Call(Hash.SET_VEHICLE_COLOURS,_vehicle,primaryColor, secondaryColor);
                     _vehicle.PlaceOnGround();
                     Game.Player.Character.SetIntoVehicle(_vehicle, VehicleSeat.Driver);
