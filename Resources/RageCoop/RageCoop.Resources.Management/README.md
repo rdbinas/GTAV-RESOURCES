@@ -98,8 +98,8 @@ Register,
 All
 ```
 
-## Members.db
-Other than using commands, you can use [database editor](https://sqlitebrowser.org/) to view/edit the members and banned address in **Members.db** directly as well. 
+## ManagementStore.db
+Other than using commands, you can use [database editor](https://github.com/mbdavid/LiteDB.Studio/releases/tag/v1.0.2) to view/edit the members and banned address in **ManagementStore.db** directly as well. 
 
 ## Server setup
 You can execute commands directly in server console with all permissions, there's one default admin user:<br/>
