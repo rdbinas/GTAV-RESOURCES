@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OutDir>..\..\..\..\..\RageCoop-V\bin\Debug\Server\Resources\Server\RageCoop.Resources.GangWars</OutDir>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RageCoop.Resources.GangWars.Shared\RageCoop.Resources.GangWars.Shared.csproj" />
+  </ItemGroup>
+	<ItemGroup>
+		<None Include="$(ProjectDir)Maps\**" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="$(ProjectDir)RuntimeLibs\**" CopyToOutputDirectory="PreserveNewest" />
+
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="LiteDB" Version="5.0.17" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="RageCoop.Core">
+	    <HintPath>..\..\..\..\RageCoop.Core.dll</HintPath>
+	  </Reference>
+	  <Reference Include="RageCoop.Server">
+	    <HintPath>..\..\..\..\RageCoop.Server.dll</HintPath>
+	  </Reference>
+	  <Reference Include="ScriptHookVDotNet">
+	    <HintPath>..\..\..\..\ScriptHookVDotNet.dll</HintPath>
+	  </Reference>
+	  <Reference Include="ScriptHookVDotNet3">
+	    <HintPath>..\..\..\..\ScriptHookVDotNet3.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+</Project>

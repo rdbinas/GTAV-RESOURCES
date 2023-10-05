@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+	  <OutDir>..\..\..\..\..\RageCoop-V\bin\Debug\Server\Resources\Client\RageCoop.Resources.GangWars.Client</OutDir>
+	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RageCoop.Resources.GangWars.Shared\RageCoop.Resources.GangWars.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RageCoop.Client">
+      <HintPath>..\..\..\..\RageCoop.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="RageCoop.Core">
+      <HintPath>..\..\..\..\RageCoop.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="ScriptHookVDotNet3">
+      <HintPath>..\..\..\..\ScriptHookVDotNet3.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+</Project>

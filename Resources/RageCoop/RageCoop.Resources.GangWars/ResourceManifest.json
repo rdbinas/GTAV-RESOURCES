@@ -1,0 +1,7 @@
+{
+  "Name": "RageCoop.Resources.GangWars",
+  "Description": "Gang Wars resource for RAGECOOP-V",
+  "ClientResources": ["RageCoop.Resources.GangWars.Client/RageCoop.Resources.GangWars.Client.csproj"],
+  "ServerResources": ["RageCoop.Resources.GangWars/RageCoop.Resources.GangWars.csproj"],
+  "Version": "0.1"
+}
