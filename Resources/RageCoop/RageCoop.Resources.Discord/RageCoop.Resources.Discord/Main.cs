@@ -90,7 +90,11 @@ namespace RageCoop.Resources.Discord
 
         private async Task MainAsync()
         {
-            Client = new DiscordSocketClient();
+            var config = new DiscordSocketConfig
+            {
+                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.MessageContent
+            };
+            Client = new DiscordSocketClient(config);
             Client.Log += LogAsync;
             Client.Ready += ReadyAsync;
             Client.MessageReceived += MessageReceivedAsync;
