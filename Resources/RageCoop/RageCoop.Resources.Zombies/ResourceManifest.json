@@ -1,0 +1,7 @@
+{
+  "Name": "RageCoop.Resources.Zombies",
+  "Description": "Zombies resource for RAGECOOP-V",
+  "ClientResources": ["RageCoop.Resources.Zombies.Client/RageCoop.Resources.Zombies.Client.csproj"],
+  "ServerResources": ["RageCoop.Resources.Zombies/RageCoop.Resources.Zombies.csproj"],
+  "Version": "0.1"
+}
