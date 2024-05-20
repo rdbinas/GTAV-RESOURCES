@@ -1,8 +1,7 @@
-﻿using GTA;
+using GTA;
 using RageCoop.Client.Scripting;
 using System.Collections.Generic;
 using GTA.Native;
-using GTA.Math;
 
 namespace RageCoop.Resources.Zombies
 {
@@ -15,6 +14,7 @@ namespace RageCoop.Resources.Zombies
         private readonly List<Vehicle> _zombieVehicles = new List<Vehicle>();
 
         private RelationshipGroup _zombieGroup;
+        private RelationshipGroup _playerZombieGroup; // Add a new relationship group for the player zombie
 
         public override void OnStart()
         {
@@ -24,6 +24,9 @@ namespace RageCoop.Resources.Zombies
 
             API.QueueAction(() => {
                 _zombieGroup = World.AddRelationshipGroup("ZOMBIES_MOD");
+                _playerZombieGroup = World.AddRelationshipGroup("PLAYER_ZOMBIE_MOD"); // Initialize the player zombie relationship group
+                Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 5, _playerZombieGroup, _zombieGroup); // Set the player zombie group as friendly towards other zombies
+                Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 5, _zombieGroup, _playerZombieGroup); // Set other zombies as friendly towards the player zombie
             });
         }
 
@@ -78,8 +81,10 @@ namespace RageCoop.Resources.Zombies
                         Function.Call(Hash.APPLY_DAMAGE_TO_PED, player, 15);
                         Function.Call(Hash.SET_PED_TO_RAGDOLL, player, 1, 9000, 9000, 1, 1, 1);
                         Function.Call(Hash.SET_PED_TO_RAGDOLL, ped, 1, 100, 100, 1, 1, 1);
-                        ped.ApplyForceRelative(new Vector3(0, 1, 2));
-                        player.ApplyForceRelative(new Vector3(0, -2, -10));
+                        ped.ApplyForceRelative(new GTA.Math.Vector3(0, 1, 2));
+                        player.ApplyForceRelative(new GTA.Math.Vector3(0, -2, -10));
+
+                        ZombifyPlayer(player); // Zombify the player when attacked by a zombie
                     }
                 }
 
@@ -159,14 +164,38 @@ namespace RageCoop.Resources.Zombies
             Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, ped, 0, 0);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, 1);
 
-            ped.Task.GoTo(Game.Player.Character);
-            ped.AlwaysKeepTask = true;
             ped.IsEnemy = true;
             ped.Health = 3000;
             ped.RelationshipGroup = _zombieGroup;
 
             if (!_zombies.Contains(ped))
                 _zombies.Add(ped);
+
+            // Instruct the ped to go to the player character if the player is not in the _playerZombieGroup
+            if (Game.Player.Character.RelationshipGroup != _playerZombieGroup)
+            {
+                ped.Task.GoTo(Game.Player.Character);
+            }
         }
+
+        private void ZombifyPlayer(Ped player)
+        {
+            if (!Function.Call<bool>(Hash.HAS_CLIP_SET_LOADED, "move_m@drunk@verydrunk"))
+            {
+                Function.Call(Hash.REQUEST_CLIP_SET, "move_m@drunk@verydrunk");
+                return;
+            }
+            Function.Call(Hash.SET_PED_MOVEMENT_CLIPSET, player.Handle, "move_m@drunk@verydrunk", 1);
+            Function.Call(Hash.APPLY_PED_DAMAGE_PACK, player, "BigHitByVehicle", 0, 9);
+            Function.Call(Hash.APPLY_PED_DAMAGE_PACK, player, "SCR_Dumpster", 0, 9);
+            Function.Call(Hash.APPLY_PED_DAMAGE_PACK, player, "SCR_Torture", 0, 9);
+
+            player.RelationshipGroup = _playerZombieGroup; // Set the player zombie's relationship group
+
+            if (!_zombies.Contains(player)) // Add the player zombie to the list of zombies
+                _zombies.Add(player);
+        }
+
     }
 }
+
