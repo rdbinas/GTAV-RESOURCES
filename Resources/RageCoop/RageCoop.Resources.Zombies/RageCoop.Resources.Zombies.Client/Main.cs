@@ -16,6 +16,7 @@ namespace RageCoop.Resources.Zombies
         private readonly List<Vehicle> _zombieVehicles = new List<Vehicle>();
 
         private RelationshipGroup _zombieGroup;
+        private RelationshipGroup _playerzombieGroup;
 
         public override void OnStart()
         {
@@ -25,6 +26,7 @@ namespace RageCoop.Resources.Zombies
 
             API.QueueAction(() => {
                 _zombieGroup = World.AddRelationshipGroup("ZOMBIES_MOD");
+                _playerzombieGroup = World.AddRelationshipGroup("PLAYER_ZOMBIES_MOD");
             });
         }
 
@@ -81,13 +83,17 @@ namespace RageCoop.Resources.Zombies
                         Function.Call(Hash.SET_PED_TO_RAGDOLL, ped, 1, 100, 100, 1, 1, 1);
                         ped.ApplyForceRelative(new Vector3(0, 1, 2));
                         player.ApplyForceRelative(new Vector3(0, -2, -10));
-                        ZombifyPlayer(player); // Zombify the player when attacked by a zombie
-                    }
-                }
+                        ZombifyPlayer(player);
 
-                if (player.RelationshipGroup == _zombieGroup)
-                {
-                    ped.Task.WanderAround();
+                        foreach (var zombie in _zombies)
+                        {
+                            if (zombie.RelationshipGroup == _zombieGroup)
+                            {
+                                zombie.Task.ClearAll();
+                                zombie.Task.WanderAround();
+                            }
+                        }
+                    }
                 }
 
                 if (ped.IsDead && !ped.IsOnScreen)
@@ -96,6 +102,7 @@ namespace RageCoop.Resources.Zombies
                     ped.Delete();
                 }
             }
+
             foreach (var ped in _zombies.ToArray())
             {
                 if (!ped.Exists())
@@ -166,14 +173,15 @@ namespace RageCoop.Resources.Zombies
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, 1);
 
             ped.Task.GoTo(Game.Player.Character);
-            ped.AlwaysKeepTask = true;
             ped.IsEnemy = true;
             ped.Health = 3000;
             ped.RelationshipGroup = _zombieGroup;
 
             if (!_zombies.Contains(ped))
                 _zombies.Add(ped);
+
         }
+
         private void ZombifyPlayer(Ped player)
         {
             if (!Function.Call<bool>(Hash.HAS_CLIP_SET_LOADED, "move_m@drunk@verydrunk"))
@@ -186,7 +194,7 @@ namespace RageCoop.Resources.Zombies
             Function.Call(Hash.APPLY_PED_DAMAGE_PACK, player, "SCR_Dumpster", 0, 9);
             Function.Call(Hash.APPLY_PED_DAMAGE_PACK, player, "SCR_Torture", 0, 9);
 
-            player.RelationshipGroup = _zombieGroup;
+            player.RelationshipGroup = _playerzombieGroup;
         }
     }
 }
